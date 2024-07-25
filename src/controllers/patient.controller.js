@@ -2,8 +2,6 @@ import PatientService from "../services/patient.service.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-
-
 class PatientController {
   //sign up patients
   async signUp(req, res) {
@@ -23,7 +21,7 @@ class PatientController {
     }
     // check if phoneNumber is already registered
     const existingPatientPhoneNumber = await PatientService.findPatient({
-      phoneNumber: patientData.phoneNumber
+      phoneNumber: patientData.phoneNumber,
     });
     if (existingPatientPhoneNumber) {
       return res.status(404).send({
@@ -45,15 +43,15 @@ class PatientController {
     });
 
     //create token as cookie to patient
-    const token = jwt.sign({ email: newPatient.email }, "patient", {
+    const token = jwt.sign({ email: newPatient.email }, process.env.SECRET, {
       expiresIn: 604800,
     });
     //return created token as cookie to patient
     res.cookie("myToken", token, {
       httpOnly: true,
-      maxAge: 604800000
+      maxAge: 604800000,
     });
-    
+
     return res.status(201).send({
       success: true,
       message: "User successfully registered",
@@ -62,29 +60,34 @@ class PatientController {
   }
 
   //login patients
-  async login (req, res) {
+  async login(req, res) {
     //patient data from req.body
     const patient = req.body;
 
     //compare login email and sign up email
     //retrieve data from database
-    const regPatient = await PatientService.findPatient({email: patient.email});
+    const regPatient = await PatientService.findPatient({
+      email: patient.email,
+    });
     //if data does not exist on the database
     if (!regPatient) {
       return res.status(400).send({
         success: false,
-        message: "invalid email"
-      })
-    };
+        message: "invalid email",
+      });
+    }
 
     //compare login password with sign up password
     //compare password with patient saved password
-    const isValidPassword = await bcrypt.compare(patient.password, regPatient.password);
+    const isValidPassword = await bcrypt.compare(
+      patient.password,
+      regPatient.password
+    );
     //if not valid password
     if (!isValidPassword) {
       return res.status(400).send({
         success: false,
-        message: "invalid password"
+        message: "invalid password",
       });
     }
 
@@ -93,7 +96,7 @@ class PatientController {
       {
         email: patient.email,
       },
-      "patient",
+      process.env.SECRET,
       { expiresIn: 604800 }
     );
 
@@ -107,6 +110,20 @@ class PatientController {
       success: true,
       message: "User successfully logged in",
       regPatient,
+    });
+  }
+
+  // logout patients
+  async logout(req, res) {
+    res.cookie("myToken", "", {
+      httpOnly: true,
+      // expiresIn: 0,
+      maxAge: new Date(0),
+    });
+
+    return res.status(200).send({
+      success: true,
+      message: "User successfully logged out"
     });
   }
 

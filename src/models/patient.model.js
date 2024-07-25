@@ -29,6 +29,12 @@ const patientSchema = new Schema(
       trim: true,
       unique: false,
     },
+
+    // image: {
+    //   type: String,
+    //   required: false,
+    //   unique: false
+    // }
   },
   {
     versionKey: false,

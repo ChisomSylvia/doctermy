@@ -2,9 +2,7 @@ import mongoose from "mongoose";
 
 function connectToMongodb() {
   mongoose
-    .connect(
-      "mongodb+srv://chisomsylvia95:September95@cluster0.eaosxk0.mongodb.net"
-    )
+    .connect(process.env.MONGODB_URI)
     .then(() => {
       console.log("Mongodb is running");
     })
