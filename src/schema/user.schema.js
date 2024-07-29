@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { USER_TYPES } from "../utils/user.js";
 
 const signUpSchema = Joi.object({
   name: Joi.string().trim().required(),
@@ -13,8 +14,9 @@ const signUpSchema = Joi.object({
       )
     )
     .required(),
-  // phoneNumber: Joi.number().required(),
-  // password: Joi.string().alphanum().trim().min(8).required(),
+  userType: Joi.string()
+    .optional()
+    .valid(USER_TYPES.PATIENT, USER_TYPES.DOCTOR, USER_TYPES.ADMIN),
 });
 
 const loginSchema = Joi.object({
@@ -22,4 +24,4 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-export { signUpSchema, loginSchema }; 
+export { signUpSchema, loginSchema };

@@ -1,32 +1,32 @@
 import { Schema, model } from "mongoose";
 
-const reviewSchema = new Schema({
-  
-  reviewText: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: false
-  },
-  
-  rating: {
-    type: Number,
-    required: true,
-    unique: false
-  },
+const reviewSchema = new Schema(
+  {
+    comment: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: false,
+    },
 
-  patientId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    unique: false,
-    trim: true,
-    ref: "patient",
-  },
+    rating: {
+      type: Number,
+      required: true,
+      unique: false,
+    },
 
-}, {
-  versionKey: false,
-  timestamps: true
-}
+    userId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      unique: false,
+      trim: true,
+      ref: "user",
+    },
+  },
+  {
+    versionKey: false,
+    timestamps: true,
+  }
 );
 
 const reviewModel = new model("review", reviewSchema);

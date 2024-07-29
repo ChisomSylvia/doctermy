@@ -7,19 +7,19 @@ class ReviewService {
     return newReview;
   }
 
+  // retrieve all reviews
+  async findReviews() {
+    const reviews = await reviewModel.find().populate("userId", "name -_id");
+    return reviews;
+  }
+
   // retrieve one review
   async findReview(id) {
     const review = await reviewModel.findById(id);
     return review;
   }
 
-  // retrieve all reviews
-  async findReviews() {
-    const reviews = await reviewModel.find().populate("patientId", "name");
-    return reviews;
-  }
-
-  // update a patient by id
+  // update a review by id
   async updateReview(id, data) {
     const updatedReview = await reviewModel.findByIdAndUpdate(id, data, {
       new: true,
@@ -27,7 +27,7 @@ class ReviewService {
     return updatedReview;
   }
 
-  // delete patient by id
+  // delete user by id
   async delReview(id) {
     const deletedReview = await reviewModel.findByIdAndDelete(id);
     return deletedReview;

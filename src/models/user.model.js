@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
+import { USER_TYPES } from "../utils/user.js";
 
-const patientSchema = new Schema(
+const userSchema = new Schema(
   {
     name: {
       type: String,
@@ -30,11 +31,12 @@ const patientSchema = new Schema(
       unique: false,
     },
 
-    // image: {
-    //   type: String,
-    //   required: false,
-    //   unique: false
-    // }
+    userType: {
+      type: String,
+      required: true,
+      enum: [USER_TYPES.PATIENT, USER_TYPES.DOCTOR, USER_TYPES.ADMIN],
+      default: USER_TYPES.PATIENT
+    }
   },
   {
     versionKey: false,
@@ -43,5 +45,5 @@ const patientSchema = new Schema(
   }
 );
 
-const patientModel = new model("patient", patientSchema);
-export default patientModel;
+const userModel = new model("user", userSchema);
+export default userModel;

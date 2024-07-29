@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
-import PatientService from "../services/patient.service.js";
+import UserService from "../services/user.service.js";
 
 async function authenticate(req, res, next) {
   //get user cookie
-  const token = await req.cookies.token;
+  const token = await req.cookies.myToken;
 
   //if no cookie
   if (!token) {
@@ -15,17 +15,17 @@ async function authenticate(req, res, next) {
 
   //find the cookie
   //decrypt the cookie
-  jwt.verify(token, "mySecret", async (err, decoded) => {
+  jwt.verify(token, process.env.SECRET, async (err, decoded) => {
     //if error (expired cookie?)
     if (err) {
       return res.status(401).send({
         success: false,
-        message: "invalid token, please log in",
+        message: "Invalid token, please log in",
       });
     }
 
     //with the email, find the user in the database
-    const user = await PatientService.findOne({ email: decoded.email });
+    const user = await UserService.findUser({ email: decoded.email });
     //if user does not exist (deleted user?)
     if (!user) {
       return res.status(401).send({
@@ -33,7 +33,7 @@ async function authenticate(req, res, next) {
         message: "Invalid email, please sign in",
       });
     }
-    //find user
+    //find user using req.user
     req.user = user;
     next();
   });

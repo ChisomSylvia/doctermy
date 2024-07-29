@@ -1,29 +1,29 @@
-import PatientService from "../services/patient.service.js";
+import UserService from "../services/user.service.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-class PatientController {
-  //sign up patients
+class UserController {
+  //sign up users
   async signUp(req, res) {
-    //get patient data from req.body
-    const patientData = req.body;
+    //get user data from req.body
+    const userData = req.body;
 
-    // check if patient is already registered
+    // check if user is already registered
     // check if email is already registered
-    const existingPatientEmail = await PatientService.findPatient({
-      email: patientData.email,
+    const existingUserEmail = await UserService.findUser({
+      email: userData.email,
     });
-    if (existingPatientEmail) {
+    if (existingUserEmail) {
       return res.status(404).send({
         success: false,
         message: "Email already exists",
       });
     }
     // check if phoneNumber is already registered
-    const existingPatientPhoneNumber = await PatientService.findPatient({
-      phoneNumber: patientData.phoneNumber,
+    const existingUserPhoneNumber = await UserService.findUser({
+      phoneNumber: userData.phoneNumber,
     });
-    if (existingPatientPhoneNumber) {
+    if (existingUserPhoneNumber) {
       return res.status(404).send({
         success: false,
         message: "Phone number already exists",
@@ -32,21 +32,31 @@ class PatientController {
 
     //hash password
     const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(patientData.password, salt);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    //create new patient
-    const newPatient = await PatientService.createPatient({
-      name: patientData.name,
-      email: patientData.email,
-      phoneNumber: patientData.phoneNumber,
+    //create new user
+    const newUser = await UserService.createUser({
+      name: userData.name,
+      email: userData.email,
+      phoneNumber: userData.phoneNumber,
       password: hashedPassword,
+      userType: userData.userType,
     });
 
-    //create token as cookie to patient
-    const token = jwt.sign({ email: newPatient.email }, process.env.SECRET, {
-      expiresIn: 604800,
-    });
-    //return created token as cookie to patient
+    //create token as cookie to user
+    const token = jwt.sign(
+      {
+        _id: newUser._id,
+        email: newUser.email,
+        phoneNumber: newUser.phoneNumber,
+        userType: newUser.userType,
+      },
+      process.env.SECRET,
+      {
+        expiresIn: 604800,
+      }
+    );
+    //return created token as cookie to user
     res.cookie("myToken", token, {
       httpOnly: true,
       maxAge: 604800000,
@@ -55,22 +65,22 @@ class PatientController {
     return res.status(201).send({
       success: true,
       message: "User successfully registered",
-      newPatient,
+      data: newUser,
     });
   }
 
-  //login patients
+  //login users
   async login(req, res) {
-    //patient data from req.body
-    const patient = req.body;
+    //user data from req.body
+    const user = req.body;
 
     //compare login email and sign up email
     //retrieve data from database
-    const regPatient = await PatientService.findPatient({
-      email: patient.email,
+    const regUser = await UserService.findUser({
+      email: user.email,
     });
     //if data does not exist on the database
-    if (!regPatient) {
+    if (!regUser) {
       return res.status(400).send({
         success: false,
         message: "invalid email",
@@ -78,10 +88,10 @@ class PatientController {
     }
 
     //compare login password with sign up password
-    //compare password with patient saved password
+    //compare password with user saved password
     const isValidPassword = await bcrypt.compare(
-      patient.password,
-      regPatient.password
+      user.password,
+      regUser.password
     );
     //if not valid password
     if (!isValidPassword) {
@@ -94,13 +104,14 @@ class PatientController {
     //create token and assign it to the email
     const token = jwt.sign(
       {
-        email: patient.email,
+        _id: user._id,
+        email: user.email,
       },
       process.env.SECRET,
       { expiresIn: 604800 }
     );
 
-    //cookie assigned token
+    //pass token as cookie
     res.cookie("myToken", token, {
       httpOnly: true,
       maxAge: 604800000,
@@ -109,33 +120,34 @@ class PatientController {
     return res.status(200).send({
       success: true,
       message: "User successfully logged in",
-      regPatient,
+      data: regUser,
     });
   }
 
-  // logout patients
+  // logout users
   async logout(req, res) {
     res.cookie("myToken", "", {
       httpOnly: true,
-      // expiresIn: 0,
-      maxAge: new Date(0),
+      expiresIn: new Date(0),
+      // maxAge: new Date(0),
     });
 
     return res.status(200).send({
       success: true,
-      message: "User successfully logged out"
+      message: "User successfully logged out",
+      data: regUser,
     });
   }
 
   //find all users
-  async findPatients(req, res) {
-    const patients = await PatientService.findPatients();
+  async findUsers(req, res) {
+    const users = await UserService.findUsers();
     res.status(200).send({
       success: true,
       message: "All users successfully retrieved",
-      patients,
+      data: users,
     });
   }
 }
 
-export default new PatientController();
+export default new UserController();
