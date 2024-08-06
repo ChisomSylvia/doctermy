@@ -8,8 +8,8 @@ class UserService {
   }
 
   // retrieve all users
-  async findUsers() {
-    const users = await userModel.find();
+  async findUsers(query) {
+    const users = await userModel.find(query);
     return users;
   }
 

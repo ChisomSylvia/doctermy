@@ -11,7 +11,8 @@ import { updateUserSchema } from "../schema/user.schema.js";
 // );
 
 router.get("/", UserController.findUsers);
-router.get("/query", UserController.findUser);
+
+router.get("/:id", UserController.findUser);
 
 router.patch("/:id", validate(updateUserSchema), UserController.updateUser);
 

@@ -27,8 +27,41 @@ class UserController {
   // }
 
   //find all users
+  // async findUsers(req, res) {
+  //   // const { query } = req;
+  //   const users = await UserService.findUsers();
+  //   res.status(200).send({
+  //     success: true,
+  //     message: "All users successfully retrieved",
+  //     data: users,
+  //   });
+  // }
+
+  // async findUsers(req, res) {
+  //   const { role, specialty } = req.query;
+  //   const query = {};
+  //   if (role) {
+  //     query.role = role;
+  //     query.specialty = specialty;
+  //   }
+  //   const users = await UserService.findUsers(query);
+  //   res.status(200).send({
+  //     success: true,
+  //     message: "All users successfully retrieved",
+  //     data: users,
+  //   });
+  // }
+
+  //retrieve all users
   async findUsers(req, res) {
-    const users = await UserService.findUsers();
+    const { role, specialty } = req.query;
+    const query = {};
+
+    if (role) query.role = role;
+
+    if (specialty) query.specialty = specialty;
+
+    const users = await UserService.findUsers(query);
     res.status(200).send({
       success: true,
       message: "All users successfully retrieved",
@@ -39,7 +72,7 @@ class UserController {
   //find a user
   async findUser(req, res) {
     const { query } = req;
-    const user = await UserService.findUser({ query });
+    const user = await UserService.findUser(query);
     res.status(200).send({
       success: true,
       message: "User successfully retrieved",
