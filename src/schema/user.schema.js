@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { USER_TYPES } from "../utils/user.js";
+// import { USER_TYPES } from "../utils/user.js";
 
 const signUpSchema = Joi.object({
   name: Joi.string().trim().required(),
@@ -14,9 +14,7 @@ const signUpSchema = Joi.object({
       )
     )
     .required(),
-  userType: Joi.string()
-    .optional()
-    .valid(USER_TYPES.PATIENT, USER_TYPES.DOCTOR, USER_TYPES.ADMIN),
+    specialty: Joi.string().optional()
 });
 
 const loginSchema = Joi.object({
@@ -24,4 +22,34 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-export { signUpSchema, loginSchema };
+
+const updateUserSchema = Joi.object({
+  email: Joi.string().trim().email().lowercase().optional(),
+  phoneNumber: Joi.string()
+    .pattern(new RegExp(/^(?:\+?234|0)?[789]\d{9}$/))
+    .optional(),
+  password: Joi.string()
+    .pattern(
+      new RegExp(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,30}$/
+      )
+    )
+    .optional(),
+
+  uniqueId: Joi.string().optional(),
+
+  address: Joi.string().optional(),
+
+  dateOfBirth: Joi.date().optional(),
+
+  specialty: Joi.string().when("userType", {
+    is: "USER_TYPES.DOCTOR",
+    then: Joi.optional(),
+  }),
+
+  imageUrl: Joi.string().optional(),
+});
+
+
+
+export { signUpSchema, loginSchema, updateUserSchema };

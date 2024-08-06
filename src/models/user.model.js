@@ -31,17 +31,34 @@ const userSchema = new Schema(
       unique: false,
     },
 
-    userType: {
+    role: {
       type: String,
       required: true,
-      enum: [USER_TYPES.PATIENT, USER_TYPES.DOCTOR, USER_TYPES.ADMIN],
-      default: USER_TYPES.PATIENT
-    }
+      enum: [
+        USER_TYPES.PATIENT,
+        USER_TYPES.DOCTOR,
+        USER_TYPES.ADMIN,
+        USER_TYPES.SUPERADMIN,
+      ],
+      default: USER_TYPES.PATIENT,
+    },
+
+    uniqueId: { type: String, default: null },
+    
+    address: { type: String, default: null },
+
+    dateOfBirth: { type: Date, default: null },
+
+    specialty: { type: String, default: null },
+
+    imageUrl: { type: String, default: null },
+
   },
   {
+    strict: false,
     versionKey: false,
-    // timestamps: true,
-    timestamps: {currentTime: () => new Date().toLocaleString()},
+    timestamps: true,
+    // timestamps: { currentTime: () => new Date().toLocaleString() },
   }
 );
 

@@ -19,19 +19,19 @@ class UserService {
     return user;
   }
 
-  // // update a user by id
-  // async updateUser(id, data) {
-  //   const updatedUser = await userModel.findByIdAndUpdate(id, data, {
-  //     new: true,
-  //   });
-  //   return updatedUser;
-  // }
+  // update a user by id
+  async updateUser(id, data) {
+    const updatedUser = await userModel.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+    return updatedUser;
+  }
 
-  // // delete user by id
-  // async delUser(id) {
-  //   const deletedUser = await userModel.findByIdAndDelete(id);
-  //   return deletedUser;
-  // }
+  // delete user by id.....check out soft delete
+  async delUser(id) {
+    const deletedUser = await userModel.findByIdAndDelete(id);
+    return deletedUser;
+  }
 }
 
 export default new UserService();
