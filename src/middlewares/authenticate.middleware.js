@@ -5,7 +5,7 @@ import UserService from "../services/user.service.js";
 const authenticate = (allowedUserTypes = []) => {
   return async (req, res, next) => {
     //get user token from cookie or authorized header
-    const token = await req.cookies.myToken || req.headers.authorization;
+    let token = await req.cookies.myToken || req.headers.authorization;
 
     //if token is in the authorization header, remove the bearer prefix if present
     if (token && token.startsWith("Bearer ")) {
