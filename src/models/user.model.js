@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { USER_TYPES } from "../utils/user.js";
+import { USER_TYPES, DAYS, TIME_SLOTS } from "../utils/user.js";
 
 const userSchema = new Schema(
   {
@@ -44,15 +44,52 @@ const userSchema = new Schema(
     },
 
     uniqueId: { type: String, default: null },
-    
+
     address: { type: String, default: null },
 
     dateOfBirth: { type: Date, default: null },
 
-    specialty: { type: String, default: null },
-
     imageUrl: { type: String, default: null },
 
+    specialty: { type: String, default: null },
+
+    days: {
+      type: [String],
+      required: function () {
+        return this.role === USER_TYPES.DOCTOR;
+      },
+      enum: [
+        DAYS.SUNDAY,
+        DAYS.MONDAY,
+        DAYS.TUESDAY,
+        DAYS.WEDNESDAY,
+        DAYS.THURSDAY,
+        DAYS.FRIDAY,
+        DAYS.SATURDAY,
+      ],
+      default: [
+        DAYS.SUNDAY,
+        DAYS.MONDAY,
+        DAYS.TUESDAY,
+        DAYS.WEDNESDAY,
+        DAYS.THURSDAY,
+        DAYS.FRIDAY,
+        DAYS.SATURDAY,
+      ],
+    },
+
+    time: {
+      type: Map,
+      of: [String],
+      required: function () {
+        return this.role === USER_TYPES.DOCTOR;
+      },
+      default: [
+        TIME_SLOTS.MORNING_SLOTS = [],
+        TIME_SLOTS.AFTERNOON_SLOTS = [],
+        TIME_SLOTS.EVENING_SLOTS = [],
+      ],
+    },
   },
   {
     strict: false,

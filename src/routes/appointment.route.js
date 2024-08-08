@@ -24,11 +24,11 @@ router.get(
 //   AppointmentController.getAppointment
 // );
 
-router.patch(
-  "/:id/status",
-  authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
-  AppointmentController.update
-);
+// router.patch(
+//   "/:id/status",
+//   authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
+//   AppointmentController.update
+// );
 
 router.patch(
   "/:id",
