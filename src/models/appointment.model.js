@@ -5,8 +5,14 @@ const appointmentSchema = new Schema({
   type: {
     type: String,
     required: true,
-    enum: [APPOINTMENT_TYPES.CONSULTATION, APPOINTMENT_TYPES.TREATMENT, APPOINTMENT_TYPES.SURGERY, APPOINTMENT_TYPES.CHECKUP, APPOINTMENT_TYPES.LABTEST],
-    default: APPOINTMENT_TYPES.CONSULTATION
+    enum: [
+      APPOINTMENT_TYPES.CONSULTATION,
+      APPOINTMENT_TYPES.TREATMENT,
+      APPOINTMENT_TYPES.SURGERY,
+      APPOINTMENT_TYPES.CHECKUP,
+      APPOINTMENT_TYPES.LABTEST,
+    ],
+    default: APPOINTMENT_TYPES.CONSULTATION,
   },
 
   doctorId: {
@@ -22,34 +28,39 @@ const appointmentSchema = new Schema({
     required: true,
     unique: false,
     ref: "user",
-    default: null
+    default: null,
   },
 
   status: {
     type: String,
     enum: [STATUS.PENDING, STATUS.APPROVED, STATUS.DECLINED],
-    default: STATUS.PENDING
+    default: STATUS.PENDING,
   },
 
   date: {
     type: Date,
-    default: null
+    default: null,
+  },
+
+  complaint: {
+    type: String,
+    default: null,
   },
 
   startTime: {
     type: Date,
-    default: null
+    default: null,
   },
 
   endTime: {
     type: Date,
-    default: null
+    default: null,
   },
 
   doctorUpdatedAt: {
     type: Date,
-    default: null
-  }
+    default: null,
+  },
 });
 
 const appointmentModel = new model("apppointment", appointmentSchema);

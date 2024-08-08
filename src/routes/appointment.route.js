@@ -8,21 +8,21 @@ import { USER_TYPES } from "../utils/user.js";
 
 router.post(
   "/",
-  authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
+  authenticate([]),
   validate(createAppointmentSchema),
   AppointmentController.createAppointment
 );
 
 router.get(
-  "/query",
-  authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR, USER_TYPES.ADMIN]),
+  "/",
+  authenticate([]),
   AppointmentController.getAllAppointments
 );
-router.get(
-  "/:id",
-  authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR, USER_TYPES.ADMIN]),
-  AppointmentController.getAppointment
-);
+// router.get(
+//   "/query",
+//   authenticate([]),
+//   AppointmentController.getAppointment
+// );
 
 router.patch(
   "/:id/status",
