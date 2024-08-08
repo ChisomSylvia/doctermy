@@ -4,8 +4,14 @@ import UserService from "../services/user.service.js";
 
 const authenticate = (allowedUserTypes = []) => {
   return async (req, res, next) => {
-    //get user cookie
-    const token = await req.cookies.myToken;
+    //get user token from cookie or authorized header
+    const token = await req.cookies.myToken || req.headers.authorization;
+
+    //if token is in the authorization header, remove the bearer prefix if present
+    if (token && token.startsWith("Bearer ")) {
+      token = token.slice(7, token.length)
+    }
+
     //if no cookie
     if (!token) {
       return res.status(401).send({
@@ -14,7 +20,7 @@ const authenticate = (allowedUserTypes = []) => {
       });
     }
 
-    //found cookie? decrypt the cookie
+    //found token? decrypt the token
     jwt.verify(token, process.env.SECRET, async (err, decoded) => {
       //if error (expired cookie?)
       if (err) {
@@ -24,7 +30,7 @@ const authenticate = (allowedUserTypes = []) => {
         });
       }
 
-      //with the email returned with the cookie, find the user in the database
+      //with the email returned from the token, find the user in the database
       const user = await UserService.findUser({ email: decoded.email });
       //if user does not exist (deleted user?)
       if (!user) {
@@ -33,9 +39,10 @@ const authenticate = (allowedUserTypes = []) => {
           message: "Invalid email, please sign up",
         });
       }
-      //find user using req.user
+      //attach user to the rrequest object using req.user
       req.user = user;
 
+      //check if user has the right role
       if (allowedUserTypes.length === 0 || allowedUserTypes.includes(user.role)) {
         next();
       } else {

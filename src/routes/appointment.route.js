@@ -18,6 +18,7 @@ router.get(
   authenticate([]),
   AppointmentController.getAllAppointments
 );
+
 // router.get(
 //   "/query",
 //   authenticate([]),

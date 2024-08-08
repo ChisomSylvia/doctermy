@@ -59,7 +59,8 @@ const userSchema = new Schema(
     },
 
     days: {
-      type: [String],
+      type: Array,
+      of: [String],
       required: function () {
         return this.role === USER_TYPES.DOCTOR;
       },
