@@ -58,10 +58,26 @@ class AuthController {
   async addDoctors(req, res) {
     //get user data from req.body
     const { body } = req;
+    // const days = req.user.days;
+    // const time = req.user.time;
     body.email = body.email.toLowerCase();
 
     //hash password
     const hashedPassword = await encryptData(body.password);
+
+    //   if (days === null) {
+    //       return res.status(403).send({
+    //       success: false,
+    //       message: "Days is required",
+    //   })
+    // }
+
+    //   if (time === null) {
+    //       return res.status(403).send({
+    //       success: false,
+    //       message: "Time is required",
+    //   })
+    // }
 
     //create new user
     const newDoctor = await UserService.createUser({

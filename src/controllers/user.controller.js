@@ -1,6 +1,5 @@
 import UserService from "../services/user.service.js";
 
-
 class UserController {
   // // create new user
   // async createUser(req, res) {
@@ -53,6 +52,7 @@ class UserController {
   // }
 
   //retrieve all users
+
   async findUsers(req, res) {
     const { role, specialty } = req.query;
     const query = {};
@@ -87,7 +87,7 @@ class UserController {
     const updatedUser = await UserService.updateUser({ id, body });
     res.status(200).send({
       success: true,
-      message: "Changes saved successfully",
+      message: "User updated successfully",
       data: updatedUser,
     });
   }

@@ -51,7 +51,12 @@ const userSchema = new Schema(
 
     imageUrl: { type: String, default: null },
 
-    specialty: { type: String, default: null },
+    specialty: {
+      type: String,
+      required: function () {
+        return this.role === USER_TYPES.DOCTOR;
+      },
+    },
 
     days: {
       type: [String],
@@ -67,28 +72,14 @@ const userSchema = new Schema(
         DAYS.FRIDAY,
         DAYS.SATURDAY,
       ],
-      default: [
-        DAYS.SUNDAY,
-        DAYS.MONDAY,
-        DAYS.TUESDAY,
-        DAYS.WEDNESDAY,
-        DAYS.THURSDAY,
-        DAYS.FRIDAY,
-        DAYS.SATURDAY,
-      ],
     },
 
     time: {
-      type: Map,
+      type: Object,
       of: [String],
       required: function () {
         return this.role === USER_TYPES.DOCTOR;
       },
-      default: [
-        TIME_SLOTS.MORNING_SLOTS = [],
-        TIME_SLOTS.AFTERNOON_SLOTS = [],
-        TIME_SLOTS.EVENING_SLOTS = [],
-      ],
     },
   },
   {
