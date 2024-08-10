@@ -8,8 +8,8 @@ class AppointmentService {
   }
 
   //find appointment that matches an id
-  async getAppointment(id) {
-    const appointment = await appointmentModel.findById(id);
+  async getAppointment(query) {
+    const appointment = await appointmentModel.findOne(query);
     return appointment;
   }
 
@@ -20,9 +20,9 @@ class AppointmentService {
   }
 
   //update appointment
-  async update(id, data) {
-    const newStatus = await appointmentModel.findByIdAndUpdate(id, data, {new: true});
-    return newStatus;
+  async update(query, data) {
+    const updatedAppointment = await appointmentModel.findOneAndUpdate(query, data, {new: true});
+    return updatedAppointment;
   }
 
 }

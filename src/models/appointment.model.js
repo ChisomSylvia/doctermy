@@ -1,5 +1,10 @@
 import { Schema, model } from "mongoose";
-import { APPOINTMENT_TYPES, STATUS } from "../utils/user.js";
+import {
+  APPOINTMENT_TYPES,
+  STATUS,
+  USER_TYPES,
+  // TIME_SLOTS,
+} from "../utils/user.js";
 
 const appointmentSchema = new Schema({
   type: {
@@ -18,28 +23,33 @@ const appointmentSchema = new Schema({
   doctorId: {
     type: Schema.Types.ObjectId,
     required: true,
-    unique: false,
+    // unique: false,
     ref: "user",
-    default: null,
+    // default: null,
   },
 
   patientId: {
     type: Schema.Types.ObjectId,
     required: true,
-    unique: false,
+    // unique: false,
     ref: "user",
-    default: null,
+    // default: null,
   },
 
   status: {
     type: String,
-    enum: [STATUS.PENDING, STATUS.APPROVED, STATUS.DECLINED],
+    enum: [STATUS.PENDING, STATUS.APPROVED, STATUS.DECLINED, STATUS.COMPLETED],
     default: STATUS.PENDING,
   },
 
-  date: {
+  startTime: {
     type: Date,
-    default: null,
+    required: true,
+  },
+
+  endTime: {
+    type: Date,
+    // default: null,
   },
 
   complaint: {
@@ -47,19 +57,19 @@ const appointmentSchema = new Schema({
     default: null,
   },
 
-  startTime: {
-    type: Date,
-    default: null,
-  },
-
-  endTime: {
-    type: Date,
-    default: null,
-  },
-
   doctorUpdatedAt: {
     type: Date,
-    default: null,
+    // default: null,
+  },
+
+  bookedBy: {
+    type: String,
+    enum: [USER_TYPES.DOCTOR, USER_TYPES.PATIENT],
+  },
+
+  remark: {
+    type: String,
+    // default: null,
   },
 });
 

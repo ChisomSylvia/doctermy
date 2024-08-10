@@ -58,9 +58,8 @@ const userSchema = new Schema(
       },
     },
 
-    days: {
-      type: Array,
-      of: [String],
+    availableDays: {
+      type: [String],
       required: function () {
         return this.role === USER_TYPES.DOCTOR;
       },
@@ -75,12 +74,12 @@ const userSchema = new Schema(
       ],
     },
 
-    time: {
-      type: Object,
-      of: [String],
+    availableTime: {
+      type: [String],
       required: function () {
         return this.role === USER_TYPES.DOCTOR;
       },
+      enum: TIME_SLOTS,
     },
   },
   {

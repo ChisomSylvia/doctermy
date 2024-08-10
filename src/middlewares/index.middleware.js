@@ -2,7 +2,7 @@ import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { json } from "express";
+import { json, urlencoded } from "express";
 import { configDotenv } from "dotenv";
 import indexRoute from "../routes/index.route.js";
 
@@ -20,6 +20,7 @@ export default (app) => {
   app.use(helmet());
 
   app.use(json());
+  app.use(urlencoded({ extended: true }))
 
   app.use(cookieParser());
 

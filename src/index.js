@@ -2,7 +2,9 @@ import express from "express";
 const app = express();
 import connectToMongodb from "./configs/db.config.js";
 import indexMiddleware from "./middlewares/index.middleware.js";
-const PORT = process.env.PORT || 1111;
+import { config } from "dotenv";
+config();
+const PORT = process.env.PORT || 1112;
 
 
 

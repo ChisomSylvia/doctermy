@@ -1,7 +1,6 @@
 import Joi from "joi";
 import { DAYS, USER_TYPES, TIME_SLOTS } from "../utils/user.js";
 
-
 //create users schema
 const signUpSchema = Joi.object({
   name: Joi.string().trim().required(),
@@ -19,7 +18,15 @@ const signUpSchema = Joi.object({
       )
     )
     .trim()
-    .required(),
+    // .required()
+    .when("role", {
+      is: USER_TYPES.PATIENT,
+      then: Joi.required(),
+    })
+    .when("role", {
+      is: USER_TYPES.SUPERADMIN || USER_TYPES.ADMIN || USER_TYPES.DOCTOR,
+      then: Joi.required().default("user")
+    }),
 
   specialty: Joi.string().when("role", {
     is: USER_TYPES.DOCTOR,
@@ -27,7 +34,7 @@ const signUpSchema = Joi.object({
     // otherwise: Joi.forbidden(),
   }),
 
-  days: Joi.array()
+  availableDays: Joi.array()
     .items(
       Joi.string().valid(
         DAYS.SUNDAY,
@@ -45,27 +52,20 @@ const signUpSchema = Joi.object({
       // otherwise: Joi.forbidden(),
     }),
 
-  time: Joi.object({
-    MORNING_SLOTS: Joi.array()
-      .items(Joi.string().valid(...TIME_SLOTS.MORNING_SLOTS)),
-    AFTERNOON_SLOTS: Joi.array()
-      .items(Joi.string().valid(...TIME_SLOTS.AFTERNOON_SLOTS)),
-    EVENING_SLOTS: Joi.array()
-      .items(Joi.string().valid(...TIME_SLOTS.EVENING_SLOTS)),
-  }).when("role", {
-    is: USER_TYPES.DOCTOR,
-    then: Joi.required(),
-    // otherwise: Joi.forbidden(),
-  }),
+  availableTime: Joi.array()
+    .items(Joi.string().valid(...TIME_SLOTS))
+    .when("role", {
+      is: USER_TYPES.DOCTOR,
+      then: Joi.required(),
+      // otherwise: Joi.forbidden(),
+    }),
 });
-
 
 //login users schema
 const loginSchema = Joi.object({
   email: Joi.string().lowercase().required(),
   password: Joi.string().required(),
 });
-
 
 //update users schema
 const updateUserSchema = Joi.object({
@@ -97,7 +97,7 @@ const updateUserSchema = Joi.object({
     otherwise: Joi.forbidden(),
   }),
 
-  days: Joi.array()
+  availableDays: Joi.array()
     .items(
       Joi.string().valid(
         DAYS.SUNDAY,
@@ -115,22 +115,13 @@ const updateUserSchema = Joi.object({
       otherwise: Joi.forbidden(),
     }),
 
-  time: Joi.object({
-    MORNING_SLOTS: Joi.array()
-      .items(Joi.string().valid(...TIME_SLOTS.MORNING_SLOTS))
-      .default([]),
-    AFTERNOON_SLOTS: Joi.array()
-      .items(Joi.string().valid(...TIME_SLOTS.AFTERNOON_SLOTS))
-      .default([]),
-    EVENING_SLOTS: Joi.array()
-      .items(Joi.string().valid(...TIME_SLOTS.EVENING_SLOTS))
-      .default([]),
-  }).when("role", {
-    is: USER_TYPES.DOCTOR,
-    then: Joi.optional(),
-    otherwise: Joi.forbidden(),
-  }),
+  availableTime: Joi.array()
+    .items(Joi.string().valid(...TIME_SLOTS))
+    .when("role", {
+      is: USER_TYPES.DOCTOR,
+      then: Joi.optional(),
+      otherwise: Joi.forbidden(),
+    }),
 });
-
 
 export { signUpSchema, loginSchema, updateUserSchema };

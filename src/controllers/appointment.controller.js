@@ -1,22 +1,54 @@
 import AppointmentService from "../services/appointment.service.js";
 import { USER_TYPES, STATUS } from "../utils/user.js";
+import { convertToStartTime } from "../utils/time.js";
 
 class AppointmentController {
+  //create/request for an appointment
   async createAppointment(req, res) {
     const { body } = req;
     const userId = req.user._id;
     const userType = req.user.role;
 
+    // Set doctorId or patientId based on user role
     if (userType === USER_TYPES.PATIENT) {
       body.patientId = userId;
-    }
-    if (userType === USER_TYPES.DOCTOR) {
+    } else if (userType === USER_TYPES.DOCTOR) {
       body.doctorId = userId;
+    } else {
+      return res.status(403).send({
+        success: false,
+        message: "Unauthorized user type",
+      });
     }
-    const newAppointment = await AppointmentService.createAppointment({
-      ...body,
-      userId,
+
+    // Convert timeValue and date to startTime
+    const startTime = convertToStartTime(body.timeValue, body.date);
+    body.startTime = startTime;
+
+    // Remove timeValue and date from the value object as they're not in the schema
+    delete body.timeValue;
+    delete body.date;
+
+    const conflictingAppointment = await AppointmentService.getAppointment({
+      doctorId: body.doctorId,
+      startTime,
+      status: { $in: [STATUS.PENDING, STATUS.APPROVED] },
     });
+
+    // Check doctor availability
+    if (conflictingAppointment) {
+      return res.status(400).send({
+        success: false,
+        message: "Doctor is not available at the selected time",
+      });
+    }
+
+    // Set status based on who's booking the appointment
+    body.status =
+      userType === USER_TYPES.DOCTOR ? STATUS.APPROVED : STATUS.PENDING;
+    body.bookedBy = userType;
+
+    const newAppointment = await AppointmentService.createAppointment(body);
 
     res.status(201).send({
       success: true,
@@ -52,7 +84,7 @@ class AppointmentController {
   //   });
   // }
 
-  //retrieve all appointments that matches a query
+  //retrieve all appointments or those that matches a query
   async getAllAppointments(req, res) {
     const { query } = req;
     const userId = req.user._id;
@@ -65,16 +97,14 @@ class AppointmentController {
       query.doctorId = userId;
     }
 
-    //another format to write the if statement above
-    // let appointmentQuery = { ...query };
-
-    // if (userType !== USER_TYPES.ADMIN || userType !== USER_TYPES.SUPERADMIN) {
+    // if (userType !== USER_TYPES.ADMIN && userType !== USER_TYPES.SUPERADMIN) {
     //   appointmentQuery = {
     //     ...query,
     //     $or: [{ patientId: userId }, { doctorId: userId }],
     //   };
     // }
 
+    //retrieve all appointments based on passed query
     const allAppointments = await AppointmentService.getAllAppointments(query);
     res.status(200).send({
       success: true,
@@ -82,32 +112,35 @@ class AppointmentController {
       data: allAppointments,
     });
   }
-
-  //update appointment status
+  
+  //update appointment
   async update(req, res) {
-    const { id } = req.params;
-    // const { body } = req;
-    const { status, ...otherUpdates } = req.body;
+    // const { id } = req.params;
+    const { query } = req;
+    const { status, remark, ...otherUpdates } = req.body;
     const userType = req.user.role;
-    // const { query } = req;
 
     //check if appointment already exists
-    const foundAppointment = await AppointmentService.getAppointment(id);
+    const foundAppointment = await AppointmentService.getAppointment(query);
     if (!foundAppointment) {
       return res.status(404).send({
         success: false,
         message: "Appointment does not exist",
       });
     }
+
     //check if appointment has been approved or declined
-    if (userType === USER_TYPES.PATIENT && foundAppointment.status !== STATUS.PENDING) {
+    if (
+      userType === USER_TYPES.PATIENT &&
+      foundAppointment.status !== STATUS.PENDING
+    ) {
       return res.status(400).send({
         success: false,
         message: "You can no longer modify appointment",
       });
     }
 
-    // Check if the person is a doctor and if they are trying to set an invalid status
+    // Check if the doctor is trying to set an invalid status
     if (
       userType === USER_TYPES.DOCTOR &&
       status !== STATUS.APPROVED &&
@@ -119,7 +152,8 @@ class AppointmentController {
       });
     }
 
-    if (userType === USER_TYPES.PATIENT && status === STATUS.PENDING) {
+    //check if patients are trying to update status
+    if (userType === USER_TYPES.PATIENT && status !== STATUS.PENDING) {
       return res.status(403).send({
         success: false,
         message: "Patients are not allowed to make status update",
@@ -127,20 +161,18 @@ class AppointmentController {
     }
 
     const updateData = { ...otherUpdates };
-    if (userType === USER_TYPES.DOCTOR && status !== STATUS.PENDING) {
-      updateData.status = status;
+    //if user is a doctor, check if status is approved
+    if (userType === USER_TYPES.DOCTOR) {
+      if (foundAppointment.status === STATUS.APPROVED) {
+        updateData.status = STATUS.COMPLETED;
+      } else if (status) {
+        updateData.status = status;
+      }
       updateData.doctorUpdatedAt = Date.now();
+      updateData.remark = remark;
     }
 
-    const updatedAppointment = await AppointmentService.update(
-      id,
-      updateData
-      // id,
-      // body, {
-      //   status,
-      //   doctorUpdatedAt: Date.now(),
-      // }
-    );
+    const updatedAppointment = await AppointmentService.update(query, updateData);
     res.status(200).send({
       success: true,
       message: "Appointment updated sucessfully",
@@ -151,33 +183,3 @@ class AppointmentController {
 
 export default new AppointmentController();
 
-// //update appointment
-// async updateAppointment(req, res) {
-//   const { id } = req.params;
-//   const { body } = req;
-//   //check if appointment already exists
-//   const foundAppointment = await AppointmentService.getAppointment(id);
-//   if (!foundAppointment) {
-//     return res.status(404).send({
-//       success: false,
-//       message: "Appointment does not exist",
-//     });
-//   }
-//   //check if appointment has been approved or declined
-//   if (foundAppointment.status !== STATUS.PENDING) {
-//     return res.status(400).send({
-//       success: false,
-//       message: "You can no longer modify appointment",
-//     });
-//   }
-//   //update appointment
-//   const updatedAppointment = await AppointmentService.updateAppointment({
-//     id,
-//     body,
-//   });
-//   res.status(200).send({
-//     success: true,
-//     message: "Appointment retrieved sucessfully",
-//     data: updatedAppointment,
-//   });
-// }

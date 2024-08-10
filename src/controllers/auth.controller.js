@@ -1,8 +1,10 @@
 import UserService from "../services/user.service.js";
-import { encryptData, decryptData, generateUserToken } from "../utils/dataCrypto.js";
+import {
+  encryptData,
+  decryptData,
+  generateUserToken,
+} from "../utils/dataCrypto.js";
 import { USER_TYPES } from "../utils/user.js";
-
-
 
 class AuthController {
   /***** CREATE SUPER_ADMIN *****/
@@ -11,6 +13,10 @@ class AuthController {
     //get user data from req.body
     const { body } = req;
     body.email = body.email.toLowerCase();
+
+    if (USER_TYPES.SUPERADMIN) {
+      body.password = "user";
+    }
 
     //hash password
     const hashedPassword = await encryptData(body.password);
@@ -35,6 +41,10 @@ class AuthController {
     //get user data from req.body
     const { body } = req;
     body.email = body.email.toLowerCase();
+
+    if (USER_TYPES.ADMIN) {
+      body.password = "user";
+    }
 
     //hash password
     const hashedPassword = await encryptData(body.password);
@@ -61,6 +71,10 @@ class AuthController {
     // const days = req.user.days;
     // const time = req.user.time;
     body.email = body.email.toLowerCase();
+
+    if (USER_TYPES.DOCTOR) {
+      body.password = "user";
+    }
 
     //hash password
     const hashedPassword = await encryptData(body.password);
@@ -92,7 +106,6 @@ class AuthController {
       data: newDoctor,
     });
   }
-
 
   /***** SIGN UP PATIENTS *****/
   //sign up users
@@ -193,7 +206,7 @@ class AuthController {
       success: true,
       message: "User successfully logged in",
       data: user,
-      myToken: token
+      // myToken: token
     });
   }
 
@@ -208,11 +221,9 @@ class AuthController {
 
     return res.status(200).send({
       success: true,
-      message: "User successfully logged out"
+      message: "User successfully logged out",
     });
   }
-
-
 }
 
 export default new AuthController();

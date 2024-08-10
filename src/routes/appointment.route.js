@@ -1,18 +1,20 @@
 import { Router } from "express";
 const router = Router();
 import AppointmentController from "../controllers/appointment.controller.js";
-import { createAppointmentSchema } from "../schema/appointment.schema.js";
+import { createAppointmentSchema, updateAppointmentSchema } from "../schema/appointment.schema.js";
 import validate from "../middlewares/validate.middleware.js";
 import { authenticate } from "../middlewares/authenticate.middleware.js";
 import { USER_TYPES } from "../utils/user.js";
 
+//endpoint to create appointments
 router.post(
   "/",
-  authenticate([]),
+  authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
   validate(createAppointmentSchema),
   AppointmentController.createAppointment
 );
 
+//endpoint to get allAppointments
 router.get(
   "/",
   authenticate([]),
@@ -31,10 +33,11 @@ router.get(
 //   AppointmentController.update
 // );
 
+//endpoint to update appointment
 router.patch(
   "/:id",
   authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
-  validate(createAppointmentSchema),
+  validate(updateAppointmentSchema),
   AppointmentController.update
 );
 
