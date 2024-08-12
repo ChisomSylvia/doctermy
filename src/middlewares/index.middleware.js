@@ -21,6 +21,7 @@ export default (app) => {
   };
 
   app.use(cors(corsOptions));
+  
   // app.use(cors({
   //   origin: "http://localhost:5173",
   //   credentials: true,
