@@ -39,7 +39,7 @@ const authenticate = (allowedUserTypes = []) => {
           message: "Invalid email, please sign up",
         });
       }
-      //attach user to the rrequest object using req.user
+      //attach user to the request object using req.user
       req.user = user;
 
       //check if user has the right role

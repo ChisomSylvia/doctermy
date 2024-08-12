@@ -8,7 +8,7 @@ const USER_TYPES = {
 const APPOINTMENT_TYPES = {
   CONSULTATION: "Consultation",
   TREATMENT: "Treatment",
-  SURGERY: "Turgery",
+  SURGERY: "Surgery",
   CHECKUP: "CheckUp",
   LABTEST: "Lab Test"
 }

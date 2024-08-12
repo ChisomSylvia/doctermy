@@ -11,16 +11,25 @@ export default (app) => {
 
   app.use(morgan());
 
-  app.use(cors());
-  app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  }))
+  const corsOptions = {
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      callback(null, true);
+    },
+    credentials: true, // Allow credentials
+  };
+
+  app.use(cors(corsOptions));
+  // app.use(cors({
+  //   origin: "http://localhost:5173",
+  //   credentials: true,
+  // }))
 
   app.use(helmet());
 
   app.use(json());
-  app.use(urlencoded({ extended: true }))
+  app.use(urlencoded({ extended: true }));
 
   app.use(cookieParser());
 

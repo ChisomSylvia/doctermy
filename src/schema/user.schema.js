@@ -94,7 +94,7 @@ const updateUserSchema = Joi.object({
   specialty: Joi.string().when("role", {
     is: "USER_TYPES.DOCTOR",
     then: Joi.optional(),
-    otherwise: Joi.forbidden(),
+    // otherwise: Joi.forbidden(),
   }),
 
   availableDays: Joi.array()
@@ -112,7 +112,7 @@ const updateUserSchema = Joi.object({
     .when("role", {
       is: USER_TYPES.DOCTOR,
       then: Joi.optional(),
-      otherwise: Joi.forbidden(),
+      // otherwise: Joi.forbidden(),
     }),
 
   availableTime: Joi.array()
@@ -120,7 +120,7 @@ const updateUserSchema = Joi.object({
     .when("role", {
       is: USER_TYPES.DOCTOR,
       then: Joi.optional(),
-      otherwise: Joi.forbidden(),
+      // otherwise: Joi.forbidden(),
     }),
 });
 

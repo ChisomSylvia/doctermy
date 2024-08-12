@@ -33,12 +33,15 @@ router.get(
 //   AppointmentController.update
 // );
 
-//endpoint to update appointment
-router.patch(
-  "/:id",
-  authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
-  validate(updateAppointmentSchema),
-  AppointmentController.update
-);
+
+router.patch("/update/", authenticate([USER_TYPES.PATIENT]), AppointmentController.updateAppointment);
+router.patch("/update-status", authenticate([USER_TYPES.DOCTOR]), AppointmentController.updateStatus);
+
+// router.patch(
+//   "/:id",
+//   authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
+//   validate(updateAppointmentSchema),
+//   AppointmentController.update
+// );
 
 export default router;
