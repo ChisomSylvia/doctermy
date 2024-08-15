@@ -43,10 +43,14 @@ class AppointmentController {
       });
     }
 
-    // Set status based on who's booking the appointment
+    // Set status and bookedBy based on who's booking the appointment
     body.status =
       userType === USER_TYPES.DOCTOR ? STATUS.APPROVED : STATUS.PENDING;
     body.bookedBy = userType;
+
+    if (userType !== USER_TYPES.DOCTOR) {
+      delete body.availableDays, delete body.availableTime;
+    }
 
     const newAppointment = await AppointmentService.createAppointment(body);
 
@@ -70,13 +74,6 @@ class AppointmentController {
       query.doctorId = userId;
     }
 
-    // if (userType !== USER_TYPES.ADMIN && userType !== USER_TYPES.SUPERADMIN) {
-    //   appointmentQuery = {
-    //     ...query,
-    //     $or: [{ patientId: userId }, { doctorId: userId }],
-    //   };
-    // }
-
     //retrieve all appointments based on passed query
     const allAppointments = await AppointmentService.getAllAppointments(query);
     res.status(200).send({
@@ -93,7 +90,15 @@ class AppointmentController {
     const userId = req.user._id;
     const userType = req.user.role;
 
-    //check if the appointment exists
+    // // Check if the user is a patient and modify the query accordingly
+    // if (userType === USER_TYPES.PATIENT) {
+    //   query.patientId = userId;
+    //     console.log(userId);
+    //     console.log(query);
+    // }
+
+    // Check if the appointment exists
+
     const foundAppointment = await AppointmentService.getAppointment(query);
     if (!foundAppointment) {
       return res.status(404).send({
@@ -102,51 +107,51 @@ class AppointmentController {
       });
     }
 
-    if (
-      (userType === USER_TYPES.PATIENT && userId !==
-      foundAppointment.patientId.toString())
-    ) {
-      return res.status(403).send({
-        success: false,
-        message: "Unauthorized access"
-      });
+    if (userType === USER_TYPES.PATIENT) {
+      // Ensure that patients can only modify their own appointment
+      if (foundAppointment.patientId.toString() !== userId.toString()) {
+        return res.status(403).send({
+          success: false,
+          message: "Unauthorized access",
+        });
+      }
+
+      // Prevent patients from updating status or adding a remark
+      if (status || remark) {
+        return res.status(403).send({
+          success: false,
+          message: "Patients are not allowed to update status or add remarks",
+        });
+      }
+
+      // Prevent modification if the appointment status is not pending
+      if (foundAppointment.status !== STATUS.PENDING) {
+        return res.status(400).send({
+          success: false,
+          message: "You can no longer modify the appointment",
+        });
+      }
     }
 
-    //check if found appointment has been approved or declined
-    if (
-      userType === USER_TYPES.PATIENT &&
-      foundAppointment.status !== STATUS.PENDING
-    ) {
-      return res.status(400).send({
-        success: false,
-        message: "You can no longer modify appointment",
-      });
-    }
+    // Convert timeValue and date to startTime
+    const startTime = convertToStartTime(
+      otherUpdates.timeValue,
+      otherUpdates.date
+    );
+    otherUpdates.startTime = startTime;
 
-    //prevent patients from updating the status
-    if (status && userType === USER_TYPES.PATIENT) {
-      return res.status(403).send({
-        success: false,
-        message: "Patients are not allowed to update the status",
-      });
-    }
+    // Remove timeValue and date from the value object as they're not in the schema
+    delete otherUpdates.timeValue;
+    delete otherUpdates.date;
 
-    //prevent patients from updating the status
-    if (remark && userType === USER_TYPES.PATIENT) {
-      return res.status(403).send({
-        success: false,
-        message: "Patients are not allowed to remark",
-      });
-    }
-
-    //update the appointment data(excluding status)
+    // Update the appointment data (excluding status and remark if the user is a patient)
     const updatedAppointment = await AppointmentService.update(
       query,
       otherUpdates
     );
     res.status(200).send({
       success: true,
-      message: "Appointment updated sucessfully",
+      message: "Appointment updated successfully",
       data: updatedAppointment,
     });
   }
@@ -155,7 +160,10 @@ class AppointmentController {
   async updateStatus(req, res) {
     const { query } = req;
     const { status, remark } = req.body;
-    const userType = req.user.role;
+    const userId = req.user._id;
+    // const userType = req.user.role;
+    
+    query.doctorId = userId;
 
     //check if the appointment exists
     const foundAppointment = await AppointmentService.getAppointment(query);
@@ -163,14 +171,6 @@ class AppointmentController {
       return res.status(404).send({
         success: false,
         message: "Appointment does not exist",
-      });
-    }
-
-    //check if user is a doctor
-    if (userType !== USER_TYPES.DOCTOR) {
-      return res.status(403).send({
-        success: false,
-        message: "Only doctors can update the status",
       });
     }
 
@@ -186,12 +186,35 @@ class AppointmentController {
       });
     }
 
-    //prepare the update data
-    const updateData = { remark, doctorUpdatedAt: Date.now() };
+    //to prevent adding remarks to approved and completed appointments
+    if (remark && status !== STATUS.DECLINED) {
+      return res.status(400).send({
+        success: false,
+        message: "You cannot add remark to this status",
+      });
+    }
 
-    //add the status to updateData 
-    if (status) {
-      updateData.status = status;
+    //prepare the update data
+    let updateData = { remark, status, doctorUpdatedAt: Date.now() };
+
+    //to ensure remark is provided for declined appointments
+    if (!remark && updateData.status === STATUS.DECLINED) {
+      return res.status(400).send({
+        success: false,
+        message: "You must provide a remark",
+      });
+    }
+
+    //to prevent pending and declined appointment from being updated to completed
+    if (
+      updateData.status === STATUS.COMPLETED && [
+        query.status === STATUS.PENDING || query.status === STATUS.DECLINED,
+      ]
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: "You cannot perform this action",
+      });
     }
 
     //if the status is completed, register the end time
