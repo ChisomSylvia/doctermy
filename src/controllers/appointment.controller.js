@@ -20,7 +20,7 @@ class AppointmentController {
         message: "Unauthorized user type",
       });
     }
-
+    
     // Convert timeValue and date to startTime
     const startTime = convertToStartTime(body.timeValue, body.date);
     body.startTime = startTime;
@@ -47,10 +47,6 @@ class AppointmentController {
     body.status =
       userType === USER_TYPES.DOCTOR ? STATUS.APPROVED : STATUS.PENDING;
     body.bookedBy = userType;
-
-    if (userType !== USER_TYPES.DOCTOR) {
-      delete body.availableDays, delete body.availableTime;
-    }
 
     const newAppointment = await AppointmentService.createAppointment(body);
 
@@ -207,9 +203,7 @@ class AppointmentController {
 
     //to prevent pending and declined appointment from being updated to completed
     if (
-      updateData.status === STATUS.COMPLETED && [
-        query.status === STATUS.PENDING || query.status === STATUS.DECLINED,
-      ]
+      updateData.status === STATUS.COMPLETED && foundAppointment.status !== STATUS.APPROVED 
     ) {
       return res.status(400).send({
         success: false,
@@ -233,76 +227,6 @@ class AppointmentController {
       data: updatedAppointment,
     });
   }
-
-  // //update appointment
-  // async update(req, res) {
-  //   // const { id } = req.params;
-  //   const { query } = req;
-  //   const { status, remark, ...otherUpdates } = req.body;
-  //   const userType = req.user.role;
-
-  //   //check if appointment already exists
-  //   const foundAppointment = await AppointmentService.getAppointment(query);
-  //   if (!foundAppointment) {
-  //     return res.status(404).send({
-  //       success: false,
-  //       message: "Appointment does not exist",
-  //     });
-  //   }
-
-  //   //check if appointment has been approved or declined
-  //   if (
-  //     userType === USER_TYPES.PATIENT &&
-  //     foundAppointment.status !== STATUS.PENDING
-  //   ) {
-  //     return res.status(400).send({
-  //       success: false,
-  //       message: "You can no longer modify appointment",
-  //     });
-  //   }
-
-  //   // Check if the doctor is trying to set an invalid status
-  //   if (
-  //     userType === USER_TYPES.DOCTOR &&
-  //     status !== STATUS.APPROVED &&
-  //     status !== STATUS.DECLINED
-  //   ) {
-  //     return res.status(400).send({
-  //       success: false,
-  //       message: "Invalid status update",
-  //     });
-  //   }
-
-  //   //check if patients are trying to update status
-  //   if (userType === USER_TYPES.PATIENT && status !== STATUS.PENDING) {
-  //     return res.status(403).send({
-  //       success: false,
-  //       message: "Patients are not allowed to make status update",
-  //     });
-  //   }
-
-  //   const updateData = { ...otherUpdates };
-  //   //if user is a doctor, check if status is approved
-  //   if (userType === USER_TYPES.DOCTOR) {
-  //     if (foundAppointment.status === STATUS.APPROVED) {
-  //       updateData.status = STATUS.COMPLETED;
-  //     } else if (status) {
-  //       updateData.status = status;
-  //     }
-  //     updateData.doctorUpdatedAt = Date.now();
-  //     updateData.remark = remark;
-  //   }
-
-  //   const updatedAppointment = await AppointmentService.update(
-  //     query,
-  //     updateData
-  //   );
-  //   res.status(200).send({
-  //     success: true,
-  //     message: "Appointment updated sucessfully",
-  //     data: updatedAppointment,
-  //   });
-  // }
 }
 
 export default new AppointmentController();
