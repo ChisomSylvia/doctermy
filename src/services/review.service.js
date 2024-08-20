@@ -1,37 +1,43 @@
-import patientModel from "../models/patient.model.js";
+import reviewModel from "../models/review.model.js";
+import reviewModel from "../models/review.model.js";
 
-class PatientService {
-  // create new patient
-  async createPatient(patientData) {
-    const newPatient = await patientModel.create(patientData);
-    return newPatient;
+class ReviewService {
+  // create new review
+  async createReview(review) {
+    const newReview = await reviewModel.create(review);
+    return newReview;
+class ReviewService {
+  // create new review
+  async createReview(review) {
+    const newReview = await reviewModel.create(review);
+    return newReview;
   }
 
-  // retrieve all patients
-  async findPatients() {
-    const patients = await patientModel.find();
-    return patients;
+  // retrieve all reviews
+  async findReviews() {
+    const reviews = await reviewModel.find().populate("userId", "name -_id");
+    return reviews;
   }
 
-  // retrieve one patient
-  async findPatient(query) {
-    const patient = await patientModel.findOne(query);
-    return patient;
+  // retrieve one review
+  async findReview(id) {
+    const review = await reviewModel.findById(id);
+    return review;
   }
 
-  // // update a patient by id
-  // async updatePatient(id, data) {
-  //   const updatedPatient = await patientModel.findByIdAndUpdate(id, data, {
-  //     new: true,
-  //   });
-  //   return updatedPatient;
-  // }
+  // update a review by id
+  async updateReview(id, data) {
+    const updatedReview = await reviewModel.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+    return updatedReview;
+  }
 
-  // // delete patient by id
-  // async delPatient(id) {
-  //   const deletedPatient = await patientModel.findByIdAndDelete(id);
-  //   return deletedPatient;
-  // }
+  // delete user by id
+  async delReview(id) {
+    const deletedReview = await reviewModel.findByIdAndDelete(id);
+    return deletedReview;
+  }
 }
 
-export default new PatientService();
+export default new ReviewService();
