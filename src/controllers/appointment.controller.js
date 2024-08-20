@@ -1,6 +1,7 @@
 import AppointmentService from "../services/appointment.service.js";
 import { USER_TYPES, STATUS } from "../utils/user.js";
 import { convertToStartTime } from "../utils/time.js";
+// import mongoose from "mongoose";
 
 class AppointmentController {
   //create/request for an appointment
@@ -20,7 +21,7 @@ class AppointmentController {
         message: "Unauthorized user type",
       });
     }
-    
+
     // Convert timeValue and date to startTime
     const startTime = convertToStartTime(body.timeValue, body.date);
     body.startTime = startTime;
@@ -157,12 +158,43 @@ class AppointmentController {
     const { query } = req;
     const { status, remark } = req.body;
     const userId = req.user._id;
-    // const userType = req.user.role;
-    
+
+    // // Validate the userId as an ObjectId
+    // if (!mongoose.Types.ObjectId.isValid(userId)) {
+    //   return res.status(400).send({
+    //     success: false,
+    //     message: "Invalid user ID",
+    //   });
+    // }
+
+    // query.doctorId = userId;
+
+    // // Validate any other ObjectId fields in query if applicable
+    // if (
+    //   query.appointmentId &&
+    //   !mongoose.Types.ObjectId.isValid(query.appointmentId)
+    // ) {
+    //   return res.status(400).send({
+    //     success: false,
+    //     message: "Invalid appointment ID",
+    //   });
+    // }
+
+    // //check if the appointment exists
+    // const foundAppointment = await AppointmentService.getAppointment(query);
+    // console.log(foundAppointment);
+    // if (!foundAppointment) {
+    //   return res.status(404).send({
+    //     success: false,
+    //     message: "Appointment does not exist",
+    //   });
+    // }
+
     query.doctorId = userId;
 
     //check if the appointment exists
     const foundAppointment = await AppointmentService.getAppointment(query);
+    console.log(foundAppointment);
     if (!foundAppointment) {
       return res.status(404).send({
         success: false,
@@ -203,7 +235,8 @@ class AppointmentController {
 
     //to prevent pending and declined appointment from being updated to completed
     if (
-      updateData.status === STATUS.COMPLETED && foundAppointment.status !== STATUS.APPROVED 
+      updateData.status === STATUS.COMPLETED &&
+      foundAppointment.status !== STATUS.APPROVED
     ) {
       return res.status(400).send({
         success: false,
@@ -223,7 +256,7 @@ class AppointmentController {
     );
     res.status(200).send({
       success: true,
-      message: "Appointmentstatus updated sucessfully",
+      message: "Appointment status updated sucessfully",
       data: updatedAppointment,
     });
   }

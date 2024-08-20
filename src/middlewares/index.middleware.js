@@ -9,7 +9,7 @@ import indexRoute from "../routes/index.route.js";
 export default (app) => {
   if (process.env.NODE_ENV !== "production") configDotenv();
 
-  app.use(morgan());
+  app.use(morgan("combined"));
 
   const corsOptions = {
     origin: function (origin, callback) {
@@ -21,11 +21,6 @@ export default (app) => {
   };
 
   app.use(cors(corsOptions));
-  
-  // app.use(cors({
-  //   origin: "http://localhost:5173",
-  //   credentials: true,
-  // }))
 
   app.use(helmet());
 

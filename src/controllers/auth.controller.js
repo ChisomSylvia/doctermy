@@ -16,6 +16,7 @@ class AuthController {
 
     if (USER_TYPES.SUPERADMIN) {
       body.password = "user";
+      delete body.availableDays, delete body.availableTime;
     }
 
     //hash password
@@ -44,6 +45,7 @@ class AuthController {
 
     if (USER_TYPES.ADMIN) {
       body.password = "user";
+      delete body.availableDays, delete body.availableTime;
     }
 
     //hash password
@@ -139,6 +141,8 @@ class AuthController {
     //hash password
     const hashedPassword = await encryptData(body.password);
 
+    delete body.availableDays, delete body.availableTime;
+
     //create new user
     const newUser = await UserService.createUser({
       ...body,
@@ -169,8 +173,8 @@ class AuthController {
     const { body } = req;
     body.email = body.email.toLowerCase();
 
-    //compare login email and sign up email
     //retrieve data from database
+    //compare login email and sign up email
     const user = await UserService.findUser({
       email: body.email,
     });
@@ -206,7 +210,7 @@ class AuthController {
       success: true,
       message: "User successfully logged in",
       data: user,
-      myToken: token
+      myToken: token,
     });
   }
 
