@@ -1,4 +1,4 @@
-import doctorNotificationModel from "../models/doctornotification.model.js";
+import doctorNotificationModel from "../models/doctorNotification.model.js";
 
 class DoctorNotificationService {
   //request notification
