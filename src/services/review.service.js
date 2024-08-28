@@ -1,11 +1,5 @@
 import reviewModel from "../models/review.model.js";
-import reviewModel from "../models/review.model.js";
 
-class ReviewService {
-  // create new review
-  async createReview(review) {
-    const newReview = await reviewModel.create(review);
-    return newReview;
 class ReviewService {
   // create new review
   async createReview(review) {

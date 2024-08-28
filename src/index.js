@@ -4,7 +4,7 @@ import connectToMongodb from "./configs/db.config.js";
 import indexMiddleware from "./middlewares/index.middleware.js";
 import { config } from "dotenv";
 config();
-const PORT = process.env.PORT || 1112;
+const PORT = process.env.PORT || 1111;
 
 
 

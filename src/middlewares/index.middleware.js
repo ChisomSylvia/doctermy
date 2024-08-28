@@ -11,16 +11,18 @@ export default (app) => {
 
   app.use(morgan("combined"));
 
-  const corsOptions = {
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      callback(null, true);
-    },
-    credentials: true, // Allow credentials
-  };
+  // const corsOptions = {
+  //   origin: function (origin, callback) {
+  //     // Allow requests with no origin (like mobile apps or curl requests)
+  //     if (!origin) return callback(null, true);
+  //     callback(null, true);
+  //   },
+  //   credentials: true, // Allow credentials
+  // };
 
-  app.use(cors(corsOptions));
+  // app.use(cors(corsOptions));
+
+  app.use(cors("*"));
 
   app.use(helmet());
 

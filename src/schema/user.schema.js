@@ -1,7 +1,14 @@
 import Joi from "joi";
-import { DAYS, USER_TYPES, TIME_SLOTS } from "../utils/user.js";
+import {
+  USER_TYPES,
+  GENDER,
+  SPECIALTY, 
+  DAYS,
+  TIME_SLOTS,
+} from "../utils/user.js";
 
-//create users schema
+
+/***** CREATE USERS SCHEMA *****/
 const signUpSchema = Joi.object({
   name: Joi.string().trim().required(),
 
@@ -18,56 +25,63 @@ const signUpSchema = Joi.object({
       )
     )
     .trim()
-    // .required()
     .when("role", {
       is: USER_TYPES.PATIENT,
       then: Joi.required(),
     })
     .when("role", {
       is: USER_TYPES.SUPERADMIN || USER_TYPES.ADMIN || USER_TYPES.DOCTOR,
-      then: Joi.required().default("user")
+      then: Joi.required().default("user"),
     }),
 
-  specialty: Joi.string().when("role", {
-    is: USER_TYPES.DOCTOR,
-    then: Joi.required(),
-    // otherwise: Joi.forbidden(),
-  }),
+  gender: Joi.string().valid(...Object.values(GENDER)),
 
-  availableDays: Joi.array()
-    .items(
-      Joi.string().valid(
-        DAYS.SUNDAY,
-        DAYS.MONDAY,
-        DAYS.TUESDAY,
-        DAYS.WEDNESDAY,
-        DAYS.THURSDAY,
-        DAYS.FRIDAY,
-        DAYS.SATURDAY
-      )
-    )
+  specialty: Joi.string()
+    .valid(...Object.values(SPECIALTY))
     .when("role", {
       is: USER_TYPES.DOCTOR,
       then: Joi.required(),
-      // otherwise: Joi.forbidden(),
     }),
 
-  availableTime: Joi.array()
+  // availableDays: Joi.string()
+  //   .valid(...Object.values(DAYS))
+  //   .when("role", {
+  //     is: USER_TYPES.DOCTOR,
+  //     then: Joi.required(),
+  //   }),
+
+  availableDays: Joi.array()
+    .items(Joi.string().valid(...Object.values(DAYS)))
+    .when("role", {
+      is: USER_TYPES.DOCTOR,
+      then: Joi.required(),
+    }),
+
+      availableTime: Joi.array()
     .items(Joi.string().valid(...TIME_SLOTS))
     .when("role", {
       is: USER_TYPES.DOCTOR,
       then: Joi.required(),
-      // otherwise: Joi.forbidden(),
     }),
+
+
+  // availableTime: Joi.array()
+  //   .valid(...TIME_SLOTS)
+  //   .when("role", {
+  //     is: USER_TYPES.DOCTOR,
+  //     then: Joi.required(),
+  //   }),
 });
 
-//login users schema
+
+/***** LOGIN USERS SCHEMA *****/
 const loginSchema = Joi.object({
   email: Joi.string().lowercase().required(),
   password: Joi.string().required(),
 });
 
-//update users schema
+
+/***** UPDATE USERS SCHEMA *****/
 const updateUserSchema = Joi.object({
   email: Joi.string().trim().email().lowercase().optional(),
 
@@ -81,7 +95,10 @@ const updateUserSchema = Joi.object({
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,30}$/
       )
     )
+    .trim()
     .optional(),
+
+  gender: Joi.string().valid(...Object.values(GENDER)),
 
   uniqueId: Joi.string().optional(),
 
@@ -91,37 +108,27 @@ const updateUserSchema = Joi.object({
 
   imageUrl: Joi.string().optional(),
 
-  specialty: Joi.string().when("role", {
-    is: "USER_TYPES.DOCTOR",
-    then: Joi.optional(),
-    // otherwise: Joi.forbidden(),
-  }),
+  specialty: Joi.string()
+    .valid(...Object.values(SPECIALTY))
+    .when("role", {
+      is: "USER_TYPES.DOCTOR",
+      then: Joi.optional(),
+    }),
 
-  availableDays: Joi.array()
-    .items(
-      Joi.string().valid(
-        DAYS.SUNDAY,
-        DAYS.MONDAY,
-        DAYS.TUESDAY,
-        DAYS.WEDNESDAY,
-        DAYS.THURSDAY,
-        DAYS.FRIDAY,
-        DAYS.SATURDAY
-      )
-    )
+  availableDays: Joi.string()
+    .valid(...Object.values(DAYS))
     .when("role", {
       is: USER_TYPES.DOCTOR,
       then: Joi.optional(),
-      // otherwise: Joi.forbidden(),
     }),
 
   availableTime: Joi.array()
-    .items(Joi.string().valid(...TIME_SLOTS))
+    .valid(...TIME_SLOTS)
     .when("role", {
       is: USER_TYPES.DOCTOR,
       then: Joi.optional(),
-      // otherwise: Joi.forbidden(),
     }),
 });
+
 
 export { signUpSchema, loginSchema, updateUserSchema };

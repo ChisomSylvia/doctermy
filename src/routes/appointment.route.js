@@ -21,6 +21,12 @@ router.get(
   AppointmentController.getAllAppointments
 );
 
+router.get(
+  "/:id",
+  authenticate([]),
+  AppointmentController.getOneAppointment
+);
+
 // router.get(
 //   "/query",
 //   authenticate([]),

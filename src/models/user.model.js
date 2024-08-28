@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
-import { USER_TYPES, DAYS, TIME_SLOTS } from "../utils/user.js";
+import { USER_TYPES, GENDER, SPECIALTY, DAYS, TIME_SLOTS } from "../utils/user.js";
+
 
 const userSchema = new Schema(
   {
@@ -34,13 +35,14 @@ const userSchema = new Schema(
     role: {
       type: String,
       required: true,
-      enum: [
-        USER_TYPES.PATIENT,
-        USER_TYPES.DOCTOR,
-        USER_TYPES.ADMIN,
-        USER_TYPES.SUPERADMIN,
-      ],
+      enum: Object.values(USER_TYPES),
       default: USER_TYPES.PATIENT,
+    },
+
+    gender: {
+      type: String,
+      enum: Object.values(GENDER),
+      default: null
     },
 
     uniqueId: { type: String, default: null },
@@ -56,6 +58,7 @@ const userSchema = new Schema(
       required: function () {
         return this.role === USER_TYPES.DOCTOR;
       },
+      enum: Object.values(SPECIALTY),
     },
 
     availableDays: {
@@ -63,15 +66,7 @@ const userSchema = new Schema(
       required: function () {
         return this.role === USER_TYPES.DOCTOR;
       },
-      enum: [
-        DAYS.SUNDAY,
-        DAYS.MONDAY,
-        DAYS.TUESDAY,
-        DAYS.WEDNESDAY,
-        DAYS.THURSDAY,
-        DAYS.FRIDAY,
-        DAYS.SATURDAY,
-      ],
+      enum: Object.values(DAYS),
     },
 
     availableTime: {
@@ -85,10 +80,10 @@ const userSchema = new Schema(
   {
     strict: false,
     versionKey: false,
-    timestamps: true,
-    // timestamps: { currentTime: () => new Date().toLocaleString() },
+    timestamps: true
   }
 );
+
 
 const userModel = new model("user", userSchema);
 export default userModel;

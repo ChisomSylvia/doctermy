@@ -6,18 +6,16 @@ import {
 } from "../utils/dataCrypto.js";
 import { USER_TYPES } from "../utils/user.js";
 
+
 class AuthController {
   /***** CREATE SUPER_ADMIN *****/
-  //create super admin
   async createSuperAdmin(req, res) {
     //get user data from req.body
     const { body } = req;
     body.email = body.email.toLowerCase();
 
-    if (USER_TYPES.SUPERADMIN) {
-      body.password = "user";
-      delete body.availableDays, delete body.availableTime;
-    }
+    //assign a default password if empty
+    body.password = "user";
 
     //hash password
     const hashedPassword = await encryptData(body.password);
@@ -36,17 +34,15 @@ class AuthController {
     });
   }
 
+
   /***** CREATE ADMIN *****/
-  //create admin
   async createAdmin(req, res) {
     //get user data from req.body
     const { body } = req;
     body.email = body.email.toLowerCase();
 
-    if (USER_TYPES.ADMIN) {
-      body.password = "user";
-      delete body.availableDays, delete body.availableTime;
-    }
+    //assign a default password if empty
+    body.password = "user";
 
     //hash password
     const hashedPassword = await encryptData(body.password);
@@ -65,35 +61,18 @@ class AuthController {
     });
   }
 
+
   /***** ADD DOCTORS *****/
-  //add doctors
   async addDoctors(req, res) {
     //get user data from req.body
     const { body } = req;
-    // const days = req.user.days;
-    // const time = req.user.time;
     body.email = body.email.toLowerCase();
 
-    if (USER_TYPES.DOCTOR) {
+    //assign a default password if empty
       body.password = "user";
-    }
 
     //hash password
     const hashedPassword = await encryptData(body.password);
-
-    //   if (days === null) {
-    //       return res.status(403).send({
-    //       success: false,
-    //       message: "Days is required",
-    //   })
-    // }
-
-    //   if (time === null) {
-    //       return res.status(403).send({
-    //       success: false,
-    //       message: "Time is required",
-    //   })
-    // }
 
     //create new user
     const newDoctor = await UserService.createUser({
@@ -109,8 +88,8 @@ class AuthController {
     });
   }
 
+
   /***** SIGN UP PATIENTS *****/
-  //sign up users
   async signUp(req, res) {
     //get user data from req.body
     const { body } = req;
@@ -141,8 +120,6 @@ class AuthController {
     //hash password
     const hashedPassword = await encryptData(body.password);
 
-    delete body.availableDays, delete body.availableTime;
-
     //create new user
     const newUser = await UserService.createUser({
       ...body,
@@ -166,8 +143,8 @@ class AuthController {
     });
   }
 
+
   /***** LOGIN *****/
-  //login users
   async login(req, res) {
     //user data from req.body
     const { body } = req;
@@ -187,7 +164,6 @@ class AuthController {
     }
 
     //compare login password with sign up password
-    //compare password with user saved password
     const isValidPassword = await decryptData(body.password, user.password);
     //if not valid password
     if (!isValidPassword) {
@@ -214,8 +190,8 @@ class AuthController {
     });
   }
 
+
   /***** LOGOUT *****/
-  // logout users
   async logout(req, res) {
     res.cookie("myToken", "", {
       httpOnly: true,
@@ -229,5 +205,6 @@ class AuthController {
     });
   }
 }
+
 
 export default new AuthController();
