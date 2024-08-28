@@ -13,6 +13,8 @@ const createAppointmentSchema = Joi.object({
     .required(),
   doctorId: Joi.string(),
   patientId: Joi.string(),
+  // doctorName: Joi.string(),
+  // patientName: Joi.string(),
   timeValue: Joi.string()
     .valid(...TIME_SLOTS)
     .required(),

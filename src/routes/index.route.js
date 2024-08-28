@@ -5,6 +5,7 @@ import userRouter from "./user.route.js";
 import fileRouter from "./file.route.js";
 import reviewRouter from "./review.route.js";
 import appointmentRouter from "./appointment.route.js";
+import notificationRouter from "./notification.route.js";
 
 
 router.use("/api/v1/auth", authRouter);
@@ -12,6 +13,6 @@ router.use("/api/v1/users", userRouter);
 router.use("/api/v1/file", fileRouter);
 router.use("/api/v1/review", reviewRouter);
 router.use("/api/v1/appointment", appointmentRouter);
-
+router.use("/api/v1/notification", notificationRouter);
 
 export default router;

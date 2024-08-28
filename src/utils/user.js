@@ -2,7 +2,13 @@ const USER_TYPES = {
   PATIENT: "Patient",
   DOCTOR: "Doctor",
   ADMIN: "Admin",
-  SUPERADMIN: "Super Admin" //change to super_admin
+  SUPERADMIN: "Super Admin"
+}
+
+const GENDER = {
+  MALE: "Male",
+  FEMALE: "Female",
+  OTHER: "Other"
 }
 
 const APPOINTMENT_TYPES = {
@@ -18,6 +24,19 @@ const STATUS = {
   APPROVED: "Approved",
   DECLINED: "Declined",
   COMPLETED: "Completed"
+}
+
+const SPECIALTY = {
+  ORTHOPEDICS: "Orthopedics",
+  PEDIATRICS: "Pediatrics",
+  NEUROLOGY: "Neurology",
+  GYNAECOLOGY: "Gynaecology",
+  SURGERY: "Surgery",
+  CARDIOLOGY: "Cardiology",
+  ONCOLOGY: "Oncology",
+  GERIATRICS: "Geriatrics",
+  PSYCHIATRY: "Psychiatry",
+  RADIOLOGY: "Radiology",
 }
 
 const DAYS = {
@@ -53,4 +72,4 @@ const TIME_SLOTS = [
   ]
 
 
-export { USER_TYPES, APPOINTMENT_TYPES, STATUS, DAYS, TIME_SLOTS };
+export { USER_TYPES, GENDER, APPOINTMENT_TYPES, STATUS, SPECIALTY, DAYS, TIME_SLOTS };

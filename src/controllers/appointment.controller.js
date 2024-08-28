@@ -1,6 +1,9 @@
 import AppointmentService from "../services/appointment.service.js";
 import { USER_TYPES, STATUS } from "../utils/user.js";
 import { convertToStartTime } from "../utils/time.js";
+import UserService from "../services/user.service.js";
+import doctorNotificationService from "../services/doctorNotification.service.js";
+import patientNotificationService from "../services/patientNotification.service.js";
 // import mongoose from "mongoose";
 
 class AppointmentController {
@@ -10,16 +13,45 @@ class AppointmentController {
     const userId = req.user._id;
     const userType = req.user.role;
 
+    const isPatientMakingRequest = body.doctorId ?? false;
+
+    let patient = null;
+    let doctor = null;
+
     // Set doctorId or patientId based on user role
     if (userType === USER_TYPES.PATIENT) {
       body.patientId = userId;
+      patient = await req.user;
     } else if (userType === USER_TYPES.DOCTOR) {
       body.doctorId = userId;
+      doctor = await req.user;
     } else {
       return res.status(403).send({
         success: false,
         message: "Unauthorized user type",
       });
+    }
+
+    // console.log(patient, typeof patient);
+
+    if (!patient) {
+      patient = await UserService.findUser({ _id: body.patientId });
+      if (!patient) {
+        return res.status(404).send({
+          success: false,
+          message: "Invalid patient Id",
+        });
+      }
+    }
+
+    if (!doctor) {
+      doctor = await UserService.findUser({ _id: body.doctorId });
+      if (!doctor) {
+        return res.status(404).send({
+          success: false,
+          message: "Invalid doctor Id",
+        });
+      }
     }
 
     // Convert timeValue and date to startTime
@@ -38,7 +70,7 @@ class AppointmentController {
 
     // Check doctor availability
     if (conflictingAppointment) {
-      return res.status(400).send({
+      return res.status(403).send({
         success: false,
         message: "Doctor is not available at the selected time",
       });
@@ -51,10 +83,33 @@ class AppointmentController {
 
     const newAppointment = await AppointmentService.createAppointment(body);
 
-    res.status(201).send({
+    const doctorNotificationData = {
+      userId: doctor._id,
+      appointmentId: await newAppointment._id,
+      message: isPatientMakingRequest
+        ? `You have a new appointment request from ${patient.name}`
+        : `You booked an appointment with ${patient.name}`,
+      isRead: isPatientMakingRequest ? false : true,
+    };
+    await doctorNotificationService.createNotification(doctorNotificationData);
+
+    const patientNotificationData = {
+      userId: patient._id,
+      appointmentId: await newAppointment._id,
+      message: isPatientMakingRequest
+        ? `You booked an appointment with ${doctor.name}`
+        : `${doctor.name} booked an appointment with you`,
+      isRead: isPatientMakingRequest ? true : false,
+    };
+    await patientNotificationService.createNotification(patientNotificationData);
+    
+    //remember to add return to res 
+    return res.status(201).send({
       success: true,
       message: "Appointment request sent sucessfully",
       data: newAppointment,
+      patientName: patient.name,
+      doctorName: doctor.name,
     });
   }
 
@@ -77,6 +132,37 @@ class AppointmentController {
       success: true,
       message: "Appointments retrieved sucessfully",
       data: allAppointments,
+    });
+  }
+
+  async getOneAppointment(req, res) {
+    const userId = req.user._id;
+    const userType = req.user.role;
+
+    const query = {
+      _id: req.params.id,
+    };
+
+    if (userType === USER_TYPES.PATIENT) {
+      query.patientId = userId;
+    }
+    if (userType === USER_TYPES.DOCTOR) {
+      query.doctorId = userId;
+    }
+
+    const appointment = await AppointmentService.getAppointment(query);
+    if (!appointment) {
+      res.status(404).send({
+        success: false,
+        message: "Appointment with such ID does not exists",
+        data: appointment,
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "Appointment retrieved sucessfully",
+      data: appointment,
     });
   }
 
@@ -158,37 +244,6 @@ class AppointmentController {
     const { query } = req;
     const { status, remark } = req.body;
     const userId = req.user._id;
-
-    // // Validate the userId as an ObjectId
-    // if (!mongoose.Types.ObjectId.isValid(userId)) {
-    //   return res.status(400).send({
-    //     success: false,
-    //     message: "Invalid user ID",
-    //   });
-    // }
-
-    // query.doctorId = userId;
-
-    // // Validate any other ObjectId fields in query if applicable
-    // if (
-    //   query.appointmentId &&
-    //   !mongoose.Types.ObjectId.isValid(query.appointmentId)
-    // ) {
-    //   return res.status(400).send({
-    //     success: false,
-    //     message: "Invalid appointment ID",
-    //   });
-    // }
-
-    // //check if the appointment exists
-    // const foundAppointment = await AppointmentService.getAppointment(query);
-    // console.log(foundAppointment);
-    // if (!foundAppointment) {
-    //   return res.status(404).send({
-    //     success: false,
-    //     message: "Appointment does not exist",
-    //   });
-    // }
 
     query.doctorId = userId;
 

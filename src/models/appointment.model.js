@@ -24,17 +24,13 @@ const appointmentSchema = new Schema(
     doctorId: {
       type: Schema.Types.ObjectId,
       required: true,
-      // unique: false,
       ref: "user",
-      // default: null,
     },
 
     patientId: {
       type: Schema.Types.ObjectId,
       required: true,
-      // unique: false,
-      ref: "user",
-      // default: null,
+      ref: "user"
     },
 
     status: {
@@ -84,5 +80,5 @@ const appointmentSchema = new Schema(
   }
 );
 
-const appointmentModel = new model("apppointment", appointmentSchema);
+const appointmentModel = new model("appointment", appointmentSchema);
 export default appointmentModel;
