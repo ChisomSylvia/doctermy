@@ -101,9 +101,11 @@ class AppointmentController {
         : `${doctor.name} booked an appointment with you`,
       isRead: isPatientMakingRequest ? true : false,
     };
-    await patientNotificationService.createNotification(patientNotificationData);
-    
-    //remember to add return to res 
+    await patientNotificationService.createNotification(
+      patientNotificationData
+    );
+
+    //remember to add return to res
     return res.status(201).send({
       success: true,
       message: "Appointment request sent sucessfully",
@@ -119,47 +121,52 @@ class AppointmentController {
     const userId = req.user._id;
     const userType = req.user.role;
 
-    if (userType === USER_TYPES.PATIENT) {
-      query.patientId = userId;
-    }
-    if (userType === USER_TYPES.DOCTOR) {
-      query.doctorId = userId;
-    }
+    // Set doctorId or patientId based on user role
+    userType === USER_TYPES.PATIENT
+      ? (query.patientId = userId)
+      : userType === USER_TYPES.DOCTOR
+      ? (query.doctorId = userId)
+      : null;
 
     //retrieve all appointments based on passed query
     const allAppointments = await AppointmentService.getAllAppointments(query);
-    res.status(200).send({
+    if (!allAppointments) {
+      return res.status(404).send({
+        success: false,
+        message: "Appointments does not exist",
+        data: appointment,
+      });
+    }
+
+    return res.status(200).send({
       success: true,
       message: "Appointments retrieved sucessfully",
       data: allAppointments,
     });
   }
 
+  //retrieve one appointment that matches an id
   async getOneAppointment(req, res) {
     const userId = req.user._id;
     const userType = req.user.role;
-
-    const query = {
-      _id: req.params.id,
-    };
+    const query = {_id: req.params.id};
 
     if (userType === USER_TYPES.PATIENT) {
       query.patientId = userId;
-    }
-    if (userType === USER_TYPES.DOCTOR) {
+    } else if (userType === USER_TYPES.DOCTOR) {
       query.doctorId = userId;
     }
 
-    const appointment = await AppointmentService.getAppointment(query);
+    const appointment = await AppointmentService.getOneAppointment(query);
     if (!appointment) {
-      res.status(404).send({
+      return res.status(404).send({
         success: false,
         message: "Appointment with such ID does not exists",
         data: appointment,
       });
     }
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: "Appointment retrieved sucessfully",
       data: appointment,
