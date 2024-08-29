@@ -62,7 +62,7 @@ class AppointmentController {
     delete body.timeValue;
     delete body.date;
 
-    const conflictingAppointment = await AppointmentService.getAppointment({
+    const conflictingAppointment = await AppointmentService.getOneAppointment({
       doctorId: body.doctorId,
       startTime,
       status: { $in: [STATUS.PENDING, STATUS.APPROVED] },
