@@ -21,33 +21,22 @@ router.get(
   AppointmentController.getAllAppointments
 );
 
+//endpoint to get one appointment
 router.get(
   "/:id",
   authenticate([]),
   AppointmentController.getOneAppointment
 );
 
-// router.get(
-//   "/query",
-//   authenticate([]),
-//   AppointmentController.getAppointment
-// );
-
-// router.patch(
-//   "/:id/status",
-//   authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
-//   AppointmentController.update
-// );
-
-
-router.patch("/update/", authenticate([USER_TYPES.PATIENT]), AppointmentController.updateAppointment);
+//endpoint to update appointment
+router.patch(
+  "/update",
+  authenticate([USER_TYPES.PATIENT]),
+  validate(updateAppointmentSchema),
+  AppointmentController.updateAppointment
+);
+//endpoint to update status
 router.patch("/update-status", authenticate([USER_TYPES.DOCTOR]), AppointmentController.updateStatus);
 
-// router.patch(
-//   "/:id",
-//   authenticate([USER_TYPES.PATIENT, USER_TYPES.DOCTOR]),
-//   validate(updateAppointmentSchema),
-//   AppointmentController.update
-// );
 
 export default router;

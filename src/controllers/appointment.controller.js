@@ -2,26 +2,27 @@ import AppointmentService from "../services/appointment.service.js";
 import { USER_TYPES, STATUS } from "../utils/user.js";
 import { convertToStartTime } from "../utils/time.js";
 import UserService from "../services/user.service.js";
-import doctorNotificationService from "../services/doctorNotification.service.js";
-import patientNotificationService from "../services/patientNotification.service.js";
+// import doctorNotificationService from "../services/doctorNotification.service.js";
+// import patientNotificationService from "../services/patientNotification.service.js";
 // import mongoose from "mongoose";
 
 class AppointmentController {
-  //create/request for an appointment
+  /***** BOOK APPOINTMENT *****/
+  //create request for an appointment
   async createAppointment(req, res) {
+    //declare variables
     const { body } = req;
     const userId = req.user._id;
     const userType = req.user.role;
-
-    const isPatientMakingRequest = body.doctorId ?? false;
-
     let patient = null;
     let doctor = null;
+    // //this checks if patient is booking appointment by looking for doctorId provided in the body
+    // const isPatientMakingRequest = body.doctorId ?? false;
 
-    // Set doctorId or patientId based on user role
+    // set doctorId or patientId based on user role && reassign patient and doctor to be the current user
     if (userType === USER_TYPES.PATIENT) {
-      body.patientId = userId;
-      patient = await req.user;
+      body.patientId = userId; //if the user is a patient, this sets the patientId field in the body object to the current user ID
+      patient = await req.user; //if user is a patient, it assigns patient to the current user
     } else if (userType === USER_TYPES.DOCTOR) {
       body.doctorId = userId;
       doctor = await req.user;
@@ -34,6 +35,7 @@ class AppointmentController {
 
     // console.log(patient, typeof patient);
 
+    //get patient's details if user is a doctor using the ID of the patient from the body data
     if (!patient) {
       patient = await UserService.findUser({ _id: body.patientId });
       if (!patient) {
@@ -44,6 +46,7 @@ class AppointmentController {
       }
     }
 
+    //get doctor's details if user is a patient using the ID of the doctor from the body data
     if (!doctor) {
       doctor = await UserService.findUser({ _id: body.doctorId });
       if (!doctor) {
@@ -54,6 +57,20 @@ class AppointmentController {
       }
     }
 
+    //get the doctor's available time from the doctor's data
+    const availableTime = await doctor.availableTime;
+
+    // Check if the desired time is available
+    const selectedTime = availableTime.find((time) => time === body.timeValue);
+    console.log("timeValue", selectedTime);
+    if (!selectedTime) {
+      // throw new Error(`The desired time ${body.timeValue} is not available.`);
+      return res.status(403).send({
+        success: false,
+        message: "The selected time is not available.",
+      });
+    }
+
     // Convert timeValue and date to startTime
     const startTime = convertToStartTime(body.timeValue, body.date);
     body.startTime = startTime;
@@ -62,17 +79,16 @@ class AppointmentController {
     delete body.timeValue;
     delete body.date;
 
+    //check if there's another appointment scheduled for the same startTime
     const conflictingAppointment = await AppointmentService.getOneAppointment({
       doctorId: body.doctorId,
       startTime,
       status: { $in: [STATUS.PENDING, STATUS.APPROVED] },
     });
-
-    // Check doctor availability
     if (conflictingAppointment) {
       return res.status(403).send({
         success: false,
-        message: "Doctor is not available at the selected time",
+        message: `${doctor.name} has another appointment at the selected time. Please select another time`,
       });
     }
 
@@ -81,42 +97,45 @@ class AppointmentController {
       userType === USER_TYPES.DOCTOR ? STATUS.APPROVED : STATUS.PENDING;
     body.bookedBy = userType;
 
+    //prepare to create new appointment
     const newAppointment = await AppointmentService.createAppointment(body);
 
-    const doctorNotificationData = {
-      userId: doctor._id,
-      appointmentId: await newAppointment._id,
-      message: isPatientMakingRequest
-        ? `You have a new appointment request from ${patient.name}`
-        : `You booked an appointment with ${patient.name}`,
-      isRead: isPatientMakingRequest ? false : true,
-    };
-    await doctorNotificationService.createNotification(doctorNotificationData);
+    // //create doctor notification on a new appointment booked
+    // const doctorNotificationData = {
+    //   userId: doctor._id,
+    //   appointmentId: await newAppointment._id,
+    //   message: isPatientMakingRequest
+    //     ? `You have a new appointment request from ${patient.name}`
+    //     : `You booked an appointment with ${patient.name}`,
+    //   isRead: isPatientMakingRequest ? false : true,
+    // };
+    // await doctorNotificationService.createNotification(doctorNotificationData);
 
-    const patientNotificationData = {
-      userId: patient._id,
-      appointmentId: await newAppointment._id,
-      message: isPatientMakingRequest
-        ? `You booked an appointment with ${doctor.name}`
-        : `${doctor.name} booked an appointment with you`,
-      isRead: isPatientMakingRequest ? true : false,
-    };
-    await patientNotificationService.createNotification(
-      patientNotificationData
-    );
+    // //create patient notification and send on a new appointment booked
+    // const patientNotificationData = {
+    //   userId: patient._id,
+    //   appointmentId: await newAppointment._id, //consider populating the service
+    //   message: isPatientMakingRequest
+    //     ? `You booked an appointment with ${doctor.name}`
+    //     : `${doctor.name} booked an appointment with you`,
+    //   isRead: isPatientMakingRequest ? true : false,
+    // };
+    // await patientNotificationService.createNotification(
+    //   patientNotificationData
+    // );
 
-    //remember to add return to res
     return res.status(201).send({
+      //return the new created appointment
       success: true,
-      message: "Appointment request sent sucessfully",
+      message: "Appointment created sucessfully",
       data: newAppointment,
-      patientName: patient.name,
-      doctorName: doctor.name,
     });
   }
 
+  /***** GET ALL APPOINTMENTS *****/
   //retrieve all appointments or those that matches a query
   async getAllAppointments(req, res) {
+    //declare variables
     const { query } = req;
     const userId = req.user._id;
     const userType = req.user.role;
@@ -130,31 +149,34 @@ class AppointmentController {
 
     //retrieve all appointments based on passed query
     const allAppointments = await AppointmentService.getAllAppointments(query);
-    if (!allAppointments) {
+    if (allAppointments.length === 0) {
       return res.status(404).send({
         success: false,
-        message: "Appointments does not exist",
-        data: appointment,
+        message: "No appointments found",
       });
     }
-
     return res.status(200).send({
+      //return retrieved appointments from the database
       success: true,
       message: "Appointments retrieved sucessfully",
       data: allAppointments,
     });
   }
 
+  /***** GET ONE APPOINTMENT *****/
   //retrieve one appointment that matches an id
   async getOneAppointment(req, res) {
     const userId = req.user._id;
+    // const user = req.user //can use this instead of userId
     const userType = req.user.role;
-    const query = {_id: req.params.id};
+    const query = { _id: req.params.id };
 
     if (userType === USER_TYPES.PATIENT) {
-      query.patientId = userId;
+      query.patientId = userId; //if the user is a patient, use the userId to query the database and return appointments whose patient ID matches the userId
+      // query.patientId = user._id; // can use this line instead of the one above if user variable is defined
     } else if (userType === USER_TYPES.DOCTOR) {
       query.doctorId = userId;
+      // query.doctorId = user._id; // can use this line instead of the one above if user variable is defined
     }
 
     const appointment = await AppointmentService.getOneAppointment(query);
@@ -162,7 +184,6 @@ class AppointmentController {
       return res.status(404).send({
         success: false,
         message: "Appointment with such ID does not exists",
-        data: appointment,
       });
     }
 
@@ -173,23 +194,19 @@ class AppointmentController {
     });
   }
 
+  /***** UPDATE APPOINTMENT *****/
   //update appointment by patients
   async updateAppointment(req, res) {
+    //declare variables
     const { query } = req;
     const { status, remark, ...otherUpdates } = req.body;
     const userId = req.user._id;
     const userType = req.user.role;
 
-    // // Check if the user is a patient and modify the query accordingly
-    // if (userType === USER_TYPES.PATIENT) {
-    //   query.patientId = userId;
-    //     console.log(userId);
-    //     console.log(query);
-    // }
+    query.patientId = userId;
 
     // Check if the appointment exists
-
-    const foundAppointment = await AppointmentService.getAppointment(query);
+    const foundAppointment = await AppointmentService.getOneAppointment(query);
     if (!foundAppointment) {
       return res.status(404).send({
         success: false,
@@ -198,13 +215,13 @@ class AppointmentController {
     }
 
     if (userType === USER_TYPES.PATIENT) {
-      // Ensure that patients can only modify their own appointment
-      if (foundAppointment.patientId.toString() !== userId.toString()) {
-        return res.status(403).send({
-          success: false,
-          message: "Unauthorized access",
-        });
-      }
+      // // Ensure that patients can only modify their own appointment
+      // if (foundAppointment.patientId._id.toString() !== userId.toString()) {
+      //   return res.status(403).send({
+      //     success: false,
+      //     message: "Unauthorized access",
+      //   });
+      // }
 
       // Prevent patients from updating status or adding a remark
       if (status || remark) {
@@ -223,6 +240,31 @@ class AppointmentController {
       }
     }
 
+    //to update appointment time, first get the doctor from the database
+    const doctor = await UserService.findUser(foundAppointment.doctorId);
+    if (!doctor) {
+      return res.status(404).send({
+        success: false,
+        message: "Invalid doctor Id",
+      });
+    }
+
+    //get the doctor's available time from the doctor's data
+    const availableTime = await doctor.availableTime;
+
+    // Check if the desired time is available
+    const selectedTime = availableTime.find(
+      (time) => time === otherUpdates.timeValue
+    );
+    console.log("timeValue", selectedTime);
+    if (!selectedTime) {
+      // throw new Error(`The desired time ${body.timeValue} is not available.`);
+      return res.status(403).send({
+        success: false,
+        message: "The selected time is not available.",
+      });
+    }
+
     // Convert timeValue and date to startTime
     const startTime = convertToStartTime(
       otherUpdates.timeValue,
@@ -239,13 +281,14 @@ class AppointmentController {
       query,
       otherUpdates
     );
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: "Appointment updated successfully",
       data: updatedAppointment,
     });
   }
 
+  /***** UPDATE APPOINTMENT STATUS *****/
   //update status by doctors
   async updateStatus(req, res) {
     const { query } = req;
@@ -255,7 +298,7 @@ class AppointmentController {
     query.doctorId = userId;
 
     //check if the appointment exists
-    const foundAppointment = await AppointmentService.getAppointment(query);
+    const foundAppointment = await AppointmentService.getOneAppointment(query);
     console.log(foundAppointment);
     if (!foundAppointment) {
       return res.status(404).send({
@@ -316,7 +359,7 @@ class AppointmentController {
       query,
       updateData
     );
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: "Appointment status updated sucessfully",
       data: updatedAppointment,

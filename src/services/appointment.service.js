@@ -1,10 +1,19 @@
 import appointmentModel from "../models/appointment.model.js";
 
 class AppointmentService {
-  //request appointment
+  //create appointment
   async createAppointment(data) {
     const newAppointment = await appointmentModel.create(data);
     return newAppointment;
+  }
+
+  //retrieve all appointments || those that matches a query
+  async getAllAppointments(query) {
+    const allAppointments = await appointmentModel
+      .find(query)
+      .populate("patientId", "name")
+      .populate("doctorId", "name");
+    return allAppointments;
   }
 
   //find appointment that matches an id
@@ -16,15 +25,6 @@ class AppointmentService {
     return appointment;
   }
 
-  //retrieve all appointments that matches a query
-  async getAllAppointments(query) {
-    const allAppointments = await appointmentModel
-      .find(query)
-      .populate("patientId", "name")
-      .populate("doctorId", "name");
-    return allAppointments;
-  }
-
   //update appointment
   async update(query, data) {
     const updatedAppointment = await appointmentModel.findOneAndUpdate(
@@ -33,6 +33,12 @@ class AppointmentService {
       { new: true }
     );
     return updatedAppointment;
+  }
+
+  //delete appointment
+  async delAppointment(query) {
+    const deletedAppointment = await appointmentModel.findOneAndDelete(query);
+    return deletedAppointment;
   }
 }
 

@@ -1,16 +1,16 @@
 import UserService from "../services/user.service.js";
+import { USER_TYPES } from "../utils/user.js";
 
 class UserController {
+  //find all users
   async findUsers(req, res) {
-    const { role, specialty } = req.query;
-    const query = {};
+    //query here returns users that matches a specific query or all users if there's no query
+    const { query } = req;
 
-    if (role) query.role = role;
-
-    if (specialty) query.specialty = specialty;
-
+    //prepare to find all users data. query ? users that matches a query : all users
     const users = await UserService.findUsers(query);
-    res.status(200).send({
+    //return all found users
+    return res.status(200).send({
       success: true,
       message: "All users successfully retrieved",
       data: users,
@@ -19,9 +19,14 @@ class UserController {
 
   //find a user
   async findUser(req, res) {
-    const { query } = req;
+    //query here allows only an ID params not query ID which returns a particular user
+    const query = { _id: req.params.id };
+
+    //prepare to find user data. query ? user that matches an ID : null
     const user = await UserService.findUser(query);
-    res.status(200).send({
+
+    //return found user
+    return res.status(200).send({
       success: true,
       message: "User successfully retrieved",
       data: user,
@@ -30,10 +35,35 @@ class UserController {
 
   //update user
   async updateUser(req, res) {
-    const { id } = req.params;
+    const userId = req.user._id;
+    const userType = req.user.role;
+    const { id } = req.params; //can use query here and assign the ID to it (const query = {_id: req.params.id})
+    const query = { _id: req.params.id };
     const { body } = req;
+
+    // Check if the user exists
+    const user = await UserService.findUser(query);
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User do not exist",
+      });
+    }
+
+    //allow patients and doctors to modify only their own data. NB: admins can modify anyone's data
+    if (userType === USER_TYPES.PATIENT || userType === USER_TYPES.DOCTOR) {
+      if (user._id.toString() !== userId.toString()) {
+        return res.status(403).send({
+          success: false,
+          message: "Unauthorized access",
+        });
+      }
+    }
+
+    //prepare to update user data. ID ? user that matches an ID : null
     const updatedUser = await UserService.updateUser(id, body);
-    res.status(200).send({
+    //return updated data
+    return res.status(200).send({
       success: true,
       message: "User updated successfully",
       data: updatedUser,
@@ -42,9 +72,34 @@ class UserController {
 
   //delete user
   async delUser(req, res) {
-    const { id } = req.params;
+    const userId = req.user._id;
+    const userType = req.user.role;
+    const { id } = req.params; //can use query here and assign the ID to it (const query = {_id: req.params.id})
+    const query = { _id: req.params.id };
+
+    // Check if the user exists
+    const user = await UserService.findUser(query);
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User do not exist",
+      });
+    }
+
+    //allow patients and doctors to modify only their own data. NB: admins can modify anyone's data
+    if (userType === USER_TYPES.PATIENT || userType === USER_TYPES.DOCTOR) {
+      if (user._id.toString() !== userId.toString()) {
+        return res.status(403).send({
+          success: false,
+          message: "Unauthorized access",
+        });
+      }
+    }
+
+    //prepare to delete user data. ID ? user that matches an ID : null
     const deletedUser = await UserService.delUser(id);
-    res.status(200).send({
+    //return deleted user
+    return res.status(200).send({
       success: true,
       message: "User deleted successfully",
       data: deletedUser,

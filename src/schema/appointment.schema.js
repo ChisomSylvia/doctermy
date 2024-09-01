@@ -1,6 +1,8 @@
 import Joi from "joi";
 import { APPOINTMENT_TYPES, STATUS, TIME_SLOTS } from "../utils/user.js";
 
+
+//create appointment schema
 const createAppointmentSchema = Joi.object({
   type: Joi.string()
     .valid(
@@ -13,16 +15,15 @@ const createAppointmentSchema = Joi.object({
     .required(),
   doctorId: Joi.string(),
   patientId: Joi.string(),
-  // doctorName: Joi.string(),
-  // patientName: Joi.string(),
   timeValue: Joi.string()
     .valid(...TIME_SLOTS)
     .required(),
   date: Joi.date().required(),
   complaint: Joi.string(),
-  // status: Joi.string().valid(STATUS.PENDING, STATUS.APPROVED, STATUS.DECLINED).optional()
 });
 
+
+//update appointment schema
 const updateAppointmentSchema = Joi.object({
   type: Joi.string()
     .valid(
@@ -41,7 +42,8 @@ const updateAppointmentSchema = Joi.object({
   date: Joi.date().optional(),
   complaint: Joi.string(),
   remark: Joi.string(),
-  status: Joi.string().valid(STATUS.PENDING, STATUS.APPROVED, STATUS.DECLINED, STATUS.COMPLETED).optional()
+  // status: Joi.string().valid(STATUS.PENDING, STATUS.APPROVED, STATUS.DECLINED, STATUS.COMPLETED).optional()
 });
+
 
 export { createAppointmentSchema, updateAppointmentSchema };
