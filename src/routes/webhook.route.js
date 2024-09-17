@@ -5,7 +5,7 @@ import { initializePaystackPaymentCtrl } from "../controllers/transaction.contro
 // import { USER_TYPES } from "../utils/user.js";
 
 router.get(
-  "/webhook/paystack",
+  "/paystack",
   initializePaystackPaymentCtrl
 );
 

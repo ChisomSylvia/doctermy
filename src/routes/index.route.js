@@ -8,6 +8,7 @@ import appointmentRouter from "./appointment.route.js";
 import appointmentTypeRouter from "./appointmentType.route.js";
 // import notificationRouter from "./notification.route.js";
 import transactionRouter from "./transaction.route.js";
+import webhookRouter from "./webhook.route.js";
 
 
 router.use("/api/v1/auth", authRouter);
@@ -18,5 +19,6 @@ router.use("/api/v1/appointment", appointmentRouter);
 router.use("/api/v1/appointment-type", appointmentTypeRouter);
 // router.use("/api/v1/notification", notificationRouter);
 router.use("/api/v1/transaction", transactionRouter);
+router.use("/api/v1/webhook", webhookRouter);
 
 export default router;

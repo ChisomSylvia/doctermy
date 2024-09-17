@@ -102,8 +102,12 @@ export const verifyPayment = async (req, res) => {
       const metaData = hooksData.metadata;
       let email = hooksData.customer?.email?.toLowerCase();
 
+      console.log("jtujtuu", email, metaData);
+
       if (email) {
         const patient = await UserService.findUser({ email });
+        console.log("ioioiooo", patient);
+
         if (!patient)
           return res
             .status(400)
@@ -114,6 +118,7 @@ export const verifyPayment = async (req, res) => {
             { _id: appointmentId },
             { isPaid: true }
           );
+          console.log("xxxxx", updatedAppointment);
           if (!updatedAppointment) {
             return res.status(404).send({
               success: false,
@@ -125,6 +130,7 @@ export const verifyPayment = async (req, res) => {
             { apppointmentId: metaData?.appointmentId },
             { status: PAYMENT_STATUS.PAID, reference: paymentReferenceId }
           );
+          console.log("iiiiiii", updatePayment);
           if (!updatePayment) {
             return res.status(404).json({
               success: false,
