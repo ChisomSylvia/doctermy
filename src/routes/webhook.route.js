@@ -4,7 +4,7 @@ import { initializePaystackPaymentCtrl } from "../controllers/transaction.contro
 // import { authenticate } from "../middlewares/authenticate.middleware.js";
 // import { USER_TYPES } from "../utils/user.js";
 
-router.get(
+router.post(
   "/paystack",
   initializePaystackPaymentCtrl
 );
