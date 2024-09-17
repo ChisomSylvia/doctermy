@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 import {
-  APPOINTMENT_TYPES,
   STATUS,
   USER_TYPES,
   // TIME_SLOTS,
@@ -8,17 +7,10 @@ import {
 
 const appointmentSchema = new Schema(
   {
-    type: {
-      type: String,
+    typeId: {
+      type: Schema.Types.ObjectId,
       required: true,
-      enum: [
-        APPOINTMENT_TYPES.CONSULTATION,
-        APPOINTMENT_TYPES.TREATMENT,
-        APPOINTMENT_TYPES.SURGERY,
-        APPOINTMENT_TYPES.CHECKUP,
-        APPOINTMENT_TYPES.LABTEST,
-      ],
-      default: APPOINTMENT_TYPES.CONSULTATION,
+      ref: "appointment_type",
     },
 
     doctorId: {
@@ -72,6 +64,16 @@ const appointmentSchema = new Schema(
     remark: {
       type: String,
       // default: null,
+    },
+
+    amount: {
+      type: Number,
+      // default: null,
+    },
+    
+    isPaid: {
+      type: Boolean,
+      default: false,
     },
   },
   {

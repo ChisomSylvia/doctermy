@@ -2,6 +2,7 @@ import AppointmentService from "../services/appointment.service.js";
 import { USER_TYPES, STATUS } from "../utils/user.js";
 import { convertToStartTime } from "../utils/time.js";
 import UserService from "../services/user.service.js";
+import appointmentTypeService from "../services/appointmentType.service.js";
 // import doctorNotificationService from "../services/doctorNotification.service.js";
 // import patientNotificationService from "../services/patientNotification.service.js";
 // import mongoose from "mongoose";
@@ -57,6 +58,14 @@ class AppointmentController {
       }
     }
 
+    const appointmentType = await appointmentTypeService.getOneAppointmentType({_id: body.typeId});
+    if (!appointmentType) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment type not found",
+      })
+    }
+
     //get the doctor's available time from the doctor's data
     const availableTime = await doctor.availableTime;
 
@@ -98,7 +107,7 @@ class AppointmentController {
     body.bookedBy = userType;
 
     //prepare to create new appointment
-    const newAppointment = await AppointmentService.createAppointment(body);
+    const newAppointment = await AppointmentService.createAppointment({...body, amount: appointmentType.fee});
 
     // //create doctor notification on a new appointment booked
     // const doctorNotificationData = {

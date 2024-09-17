@@ -1,18 +1,10 @@
 import Joi from "joi";
-import { APPOINTMENT_TYPES, STATUS, TIME_SLOTS } from "../utils/user.js";
+import { STATUS, TIME_SLOTS } from "../utils/user.js";
 
 
 //create appointment schema
 const createAppointmentSchema = Joi.object({
-  type: Joi.string()
-    .valid(
-      APPOINTMENT_TYPES.CONSULTATION,
-      APPOINTMENT_TYPES.TREATMENT,
-      APPOINTMENT_TYPES.SURGERY,
-      APPOINTMENT_TYPES.CHECKUP,
-      APPOINTMENT_TYPES.LABTEST
-    )
-    .required(),
+  typeId: Joi.string().required(),
   doctorId: Joi.string(),
   patientId: Joi.string(),
   timeValue: Joi.string()
@@ -25,15 +17,7 @@ const createAppointmentSchema = Joi.object({
 
 //update appointment schema
 const updateAppointmentSchema = Joi.object({
-  type: Joi.string()
-    .valid(
-      APPOINTMENT_TYPES.CONSULTATION,
-      APPOINTMENT_TYPES.TREATMENT,
-      APPOINTMENT_TYPES.SURGERY,
-      APPOINTMENT_TYPES.CHECKUP,
-      APPOINTMENT_TYPES.LABTEST
-    )
-    .optional(),
+  typeId: Joi.string(),
   doctorId: Joi.string(),
   patientId: Joi.string(),
   timeValue: Joi.string()
