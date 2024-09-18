@@ -186,7 +186,7 @@ class AuthController {
       success: true,
       message: "User successfully logged in",
       data: user,
-      myToken: token,
+      accessToken: token,
     });
   }
 

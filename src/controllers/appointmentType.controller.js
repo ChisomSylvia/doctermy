@@ -5,6 +5,17 @@ class AppointmentTypeController {
   async createAppointmentType(req, res) {
     const { body } = req;
 
+    //check if appointment type already exists
+    const foundAppointmentType =
+      await AppointmentTypeService.getOneAppointmentType({name: body.name});
+    if (foundAppointmentType) {
+      return res.status(400).json({
+        success: false,
+        message: "Apoointment type already exists",
+      });
+    }
+
+    //create new appointment type
     const newAppointmentType =
       await AppointmentTypeService.createAppointmentType(body);
 
